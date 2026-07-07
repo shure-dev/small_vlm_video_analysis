@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>SOP再生ビューア</title>
+<style>
+  :root {
+    --ok: #1a7f37;
+    --ok-bg: #e6f4ea;
+    --no: #6b7280;
+    --no-bg: #f1f2f4;
+    --unclear: #b45309;
+    --unclear-bg: #fef3e0;
+    --bad: #c0362c;
+    --bad-bg: #fbe9e7;
+    --line: #ddd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: #f7f7f5;
+    color: #1c1c1c;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; flex: 1; }
+  .badge {
+    font-size: 15px;
+    font-weight: 700;
+    padding: 6px 18px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+  .badge.pass { background: var(--ok-bg); color: var(--ok); }
+  .badge.fail { background: var(--bad-bg); color: var(--bad); }
+  #coverage { font-size: 13px; color: #666; white-space: nowrap; }
+
+  main {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .left { flex: 0 0 480px; }
+  .right { flex: 1; min-width: 0; }
+
+  #frameImg {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #000;
+    aspect-ratio: 4/3;
+    object-fit: contain;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .controls button {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+  }
+  .controls button:hover { background: #f0f0f0; }
+  #scrubber { flex: 1; }
+  #timeLabel {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: #444;
+    white-space: nowrap;
+    min-width: 108px;
+    text-align: right;
+  }
+  details {
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+  }
+  summary {
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #444;
+  }
+  #rawOutput {
+    margin: 0;
+    padding: 12px;
+    border-top: 1px solid var(--line);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 220px;
+    overflow: auto;
+    color: #333;
+  }
+
+  .right h2 {
+    font-size: 13px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 8px;
+  }
+  #questions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 22px;
+  }
+  .qrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .qask { flex: 1; font-size: 13px; color: #333; }
+  .pill {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.yes { background: var(--ok-bg); color: var(--ok); }
+  .pill.no { background: var(--no-bg); color: var(--no); }
+  .pill.unclear { background: var(--unclear-bg); color: var(--unclear); }
+  .prob { font-size: 11px; color: #999; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+
+  #events { display: flex; flex-direction: column; gap: 10px; }
+  .erow {
+    padding: 8px 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .erow.active { border-color: #333; box-shadow: 0 0 0 2px rgba(0,0,0,0.06) inset; }
+  .ehead {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .ename { font-weight: 600; }
+  .estatus { font-size: 12px; }
+  .estatus.ok { color: var(--ok); }
+  .estatus.missing { color: var(--bad); }
+  .estatus.correctly-absent { color: #888; }
+  .evidence { font-size: 11px; color: #999; font-family: "SF Mono", Menlo, monospace; }
+  .timeline {
+    position: relative;
+    height: 10px;
+    background: var(--no-bg);
+    border-radius: 5px;
+    margin-top: 6px;
+    overflow: visible;
+  }
+  .timeline .span {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: var(--ok);
+    opacity: 0.35;
+    border-radius: 5px;
+  }
+  .timeline .playhead {
+    position: absolute;
+    top: -3px; bottom: -3px;
+    width: 2px;
+    background: #1c1c1c;
+  }
+
+  #violations {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--bad);
+  }
+  #violations li { margin-bottom: 4px; }
+
+  footer {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 20px 30px;
+  }
+  footer h3 {
+    font-size: 13px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  footer ul { font-size: 13px; color: #444; padding-left: 20px; }
+  footer code { font-family: "SF Mono", Menlo, monospace; font-size: 12px; background: #fff; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+  <header>
+    <h1 id="sopName"></h1>
+    <span id="coverage"></span>
+    <span id="verdictBadge" class="badge"></span>
+  </header>
+
+  <main>
+    <section class="left">
+      <img id="frameImg" alt="frame">
+      <div class="controls">
+        <button id="prevBtn">◀</button>
+        <button id="playBtn">▶ 再生</button>
+        <button id="nextBtn">▶</button>
+        <input type="range" id="scrubber" min="0" value="0" step="1">
+        <span id="timeLabel"></span>
+      </div>
+      <details open>
+        <summary>このフレームでVLMが実際に返したJSON(生出力)</summary>
+        <pre id="rawOutput"></pre>
+      </details>
+    </section>
+
+    <section class="right">
+      <h2>質問への回答(このフレーム時点)</h2>
+      <div id="questions"></div>
+
+      <h2>イベント検出</h2>
+      <div id="events"></div>
+      <ul id="violations"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <h3>relations(このSOPが要求する関係)</h3>
+    <ul id="relations"></ul>
+  </footer>
+
+<script>
+const DATA = "__REPLAY_DATA__";
+
+const notOnly = new Set(
+  DATA.relations
+    .map(r => /^\s*not\s+(\w+)\s*$/.exec(r))
+    .filter(Boolean)
+    .map(m => m[1])
+);
+
+document.getElementById("sopName").textContent = DATA.sop.name;
+document.getElementById("coverage").textContent = `coverage ${Math.round(DATA.coverage * 100)}%`;
+const badge = document.getElementById("verdictBadge");
+badge.textContent = DATA.verdict === "PASS" ? "✅ PASS" : "❌ FAIL";
+badge.className = "badge " + (DATA.verdict === "PASS" ? "pass" : "fail");
+
+const violUl = document.getElementById("violations");
+DATA.violations.forEach(v => {
+  const li = document.createElement("li");
+  li.textContent = "違反: " + v;
+  violUl.appendChild(li);
+});
+
+const relUl = document.getElementById("relations");
+DATA.relations.forEach(r => {
+  const li = document.createElement("li");
+  li.innerHTML = `<code>${r}</code>`;
+  relUl.appendChild(li);
+});
+
+const scrubber = document.getElementById("scrubber");
+scrubber.max = DATA.n_frames - 1;
+
+let idx = 0;
+let playing = false;
+let timer = null;
+
+function pillClass(v) {
+  if (v === "yes") return "pill yes";
+  if (v === "unclear") return "pill unclear";
+  return "pill no";
+}
+
+function renderQuestions(frame) {
+  const box = document.getElementById("questions");
+  box.innerHTML = "";
+  DATA.questions.forEach(q => {
+    const val = frame.answers[q.id] ?? "?";
+    const prob = frame.probs[q.id] ? frame.probs[q.id][val] : null;
+    const row = document.createElement("div");
+    row.className = "qrow";
+    row.innerHTML = `
+      <span class="qask">${q.ask}</span>
+      <span class="prob">${prob != null ? Math.round(prob * 100) + "%" : ""}</span>
+      <span class="${pillClass(val)}">${val}</span>
+    `;
+    box.appendChild(row);
+  });
+}
+
+function renderEvents() {
+  const box = document.getElementById("events");
+  box.innerHTML = "";
+  for (const [name, ev] of Object.entries(DATA.events)) {
+    const detected = ev.start_idx !== null;
+    const isNotOnly = notOnly.has(name);
+    const active = detected && idx >= ev.start_idx && idx <= ev.end_idx;
+
+    let statusText, statusClass;
+    if (detected && isNotOnly) {
+      statusText = `検出された(本来は起きてはいけない) t=${ev.t}s`;
+      statusClass = "missing";
+    } else if (detected) {
+      statusText = `検出 t=${ev.t}s (frame ${ev.start_idx}-${ev.end_idx})`;
+      statusClass = "ok";
+    } else if (isNotOnly) {
+      statusText = "未検出(これが正しい)";
+      statusClass = "correctly-absent";
+    } else {
+      statusText = "未検出";
+      statusClass = "missing";
+    }
+
+    const row = document.createElement("div");
+    row.className = "erow" + (active ? " active" : "");
+    row.innerHTML = `
+      <div class="ehead">
+        <span class="ename">${name}</span>
+        <span class="estatus ${statusClass}">${statusText}</span>
+      </div>
+      <div class="evidence">${ev.evidence}</div>
+      <div class="timeline"></div>
+    `;
+    const tl = row.querySelector(".timeline");
+    if (detected) {
+      const span = document.createElement("div");
+      span.className = "span";
+      const left = ev.start_idx / DATA.n_frames * 100;
+      const width = (ev.end_idx - ev.start_idx + 1) / DATA.n_frames * 100;
+      span.style.left = left + "%";
+      span.style.width = width + "%";
+      tl.appendChild(span);
+    }
+    const playhead = document.createElement("div");
+    playhead.className = "playhead";
+    playhead.style.left = (idx / Math.max(DATA.n_frames - 1, 1) * 100) + "%";
+    tl.appendChild(playhead);
+
+    box.appendChild(row);
+  }
+}
+
+function render() {
+  const frame = DATA.frames[idx];
+  document.getElementById("frameImg").src = frame.image;
+  document.getElementById("timeLabel").textContent =
+    `t=${frame.t.toFixed(1)}s  (${idx + 1}/${DATA.n_frames})`;
+  document.getElementById("rawOutput").textContent = frame.raw;
+  scrubber.value = idx;
+  renderQuestions(frame);
+  renderEvents();
+}
+
+function stop() {
+  playing = false;
+  clearInterval(timer);
+  document.getElementById("playBtn").textContent = "▶ 再生";
+}
+
+function step(delta) {
+  idx = Math.max(0, Math.min(DATA.n_frames - 1, idx + delta));
+  render();
+}
+
+document.getElementById("playBtn").addEventListener("click", () => {
+  if (playing) { stop(); return; }
+  if (idx >= DATA.n_frames - 1) idx = 0;
+  playing = true;
+  document.getElementById("playBtn").textContent = "⏸ 停止";
+  timer = setInterval(() => {
+    if (idx >= DATA.n_frames - 1) { stop(); return; }
+    step(1);
+  }, 650);
+});
+document.getElementById("prevBtn").addEventListener("click", () => { stop(); step(-1); });
+document.getElementById("nextBtn").addEventListener("click", () => { stop(); step(1); });
+scrubber.addEventListener("input", () => { stop(); idx = parseInt(scrubber.value, 10); render(); });
+window.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") { stop(); step(-1); }
+  if (e.key === "ArrowRight") { stop(); step(1); }
+  if (e.key === " ") { e.preventDefault(); document.getElementById("playBtn").click(); }
+});
+
+render();
+</script>
+</body>
+</html>
