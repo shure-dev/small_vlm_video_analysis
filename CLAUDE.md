@@ -7,7 +7,7 @@
 - `src/` — モジュール直置き（パッケージ化していない。pip install不可・する予定もない）
   - `cli.py`（`run`/`observe`/`judge`） / `observe.py`（Phase 1: VLM観察） / `judge.py`（Phase 2: ルールエンジン） / `extract.py`（動画→フレーム） / `sop.py`（SOP YAML読み込み）
 - `examples/konro_inspection/` — モザイク済み実動画・抽出フレーム・回答ログ・SOP YAML 3種（正解 / 順序違反 / ステップ欠落）
-- `tools/replay_viewer/` — 結果をフレーム画像ごと1枚のHTMLにして再生するビューア。`python tools/replay_viewer/build.py` で再生成（同梱の `replay.html` は生成物）
+- `tools/replay_viewer/` — 結果をフレーム画像ごと1枚のHTMLにして再生するビューア。`python tools/replay_viewer/build.py` で生成（`replay.html` はbase64画像を埋め込む生成物のためgit管理外。`frames/` は同梱済み）
 - `tests/` — 実データに対する回帰テスト。VLM不要
 
 ## コマンド
