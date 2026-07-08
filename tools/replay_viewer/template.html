@@ -282,7 +282,7 @@ const modelSelect = document.getElementById("modelSelect");
 DATA.model_order.forEach(name => {
   const opt = document.createElement("option");
   opt.value = name;
-  opt.textContent = `${name}  ${DATA.models[name].verdict === "PASS" ? "✅" : "❌"}`;
+  opt.textContent = name;   // 合否はヘッダのverdictBadgeに出す(一覧に❌を並べると驚くため付けない)
   modelSelect.appendChild(opt);
 });
 modelSelect.value = model;
