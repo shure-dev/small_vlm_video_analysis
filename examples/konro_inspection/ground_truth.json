@@ -1,0 +1,34 @@
+{
+  "schema_version": "0.1",
+  "sop_id": "konro_inspection",
+  "fps": 1.0,
+  "n_frames": 16,
+  "annotated_at": "2026-07-08T14:07:12+00:00",
+  "events": {
+    "ignite": {
+      "start_idx": 1,
+      "end_idx": 4
+    },
+    "flame_seen": {
+      "start_idx": 3,
+      "end_idx": 3
+    },
+    "point1": {
+      "start_idx": 5,
+      "end_idx": 5
+    },
+    "grill_open": {
+      "start_idx": 7,
+      "end_idx": 8
+    },
+    "point2": {
+      "start_idx": 12,
+      "end_idx": 13
+    },
+    "battery_check": {
+      "start_idx": 12,
+      "end_idx": 13
+    },
+    "gloves_worn": null
+  }
+}
