@@ -9,3 +9,8 @@ venv/
 
 # 実行結果の出力先（README クイックスタートの --out-dir out/）
 out/
+
+# 再生ビューアの生成物。フレーム画像をbase64で丸ごと埋め込むため約1MBと大きく、
+# 再生成のたびに全差分が変わる。frames/ は別途コミット済みなので build.py で再生成する。
+tools/replay_viewer/replay.html
+tools/replay_viewer/replay_*.html

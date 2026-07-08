@@ -28,17 +28,27 @@ def _as_yaml_safe_str(v: Any) -> str:
 
 
 def build_prompt(questions: list[dict[str, Any]], domain_hint: str, t: float) -> str:
-    """SOPの questions: 定義から、1フレーム分の観察プロンプトを自動生成する。"""
-    schema_parts = []
+    """SOPの questions: 定義から、1フレーム分の観察プロンプトを自動生成する。
+
+    設計(experiments/ で7モデル実測):
+    - 質問文は値スロットに入れず legend に分離する。値スロットに質問文を入れると
+      MiniCPM-V等の小型モデルが値へ質問文をそのままエコーし、yes/noが出なくなる。
+    - 指示は英語にすると小型モデルでも追従しやすい(質問文自体は元の言語のまま保持)。
+    - prefill='{"'(既定)と併用する前提。空の値スロットだけだと Molmo が「完成済み」と
+      みなして空応答するが、prefillが最初のキーの途中まで固定するので生成が続く。
+    """
+    legend_parts, schema_parts = [], []
     for c in questions:
         values = [_as_yaml_safe_str(v) for v in c.get("values", ["yes", "no"])]
-        ask = c["ask"]
-        schema_parts.append(f'"{c["id"]}":"{ask} {"/".join(values)}"')
+        legend_parts.append(f'- {c["id"]}: {c["ask"]} (answer with {" or ".join(values)})')
+        schema_parts.append(f'"{c["id"]}":""')
+    legend = "\n".join(legend_parts)
     schema = "{" + ",".join(schema_parts) + "}"
     return (
-        f"{domain_hint}（時刻 t={t}s）。"
-        "見えている事実だけを、次のJSONで簡潔に答えてください"
-        "（憶測禁止・値は指定された選択肢のみ）:\n" + schema
+        f"{domain_hint} (time t={t}s). Report only what you can see (no guessing).\n"
+        f"Fields:\n{legend}\n"
+        "Fill each JSON value with exactly one allowed word (e.g. yes/no/unclear). "
+        "Do NOT repeat the question text as the value:\n" + schema
     )
 
 
@@ -51,7 +61,8 @@ class Observer:
         # record = {"raw": "...", "confidence": {question_id: {"probs": {...}, "argmax": "..."}}}
     """
 
-    def __init__(self, model: str, questions: list[dict[str, Any]]):
+    def __init__(self, model: str, questions: list[dict[str, Any]],
+                 enable_thinking: bool | None = None):
         import mlx.core as mx
         from mlx_vlm import load
 
@@ -62,6 +73,12 @@ class Observer:
 
         self._mx = mx
         self.questions = questions
+        # 思考(reasoning)モデル向けの制御。None=モデル既定に任せる(mlx_vlmは
+        # テンプレートが対応していれば既定でenable_thinking=Falseにする)。
+        # True/Falseを渡すとチャットテンプレートへ明示的に伝える。
+        # 注意: MiniCPM-Vのように enable_thinking を無視して <think> を出すモデルもあり、
+        # その場合は思考ぶんを吐き切れるよう max_tokens を上げる必要がある。
+        self.enable_thinking = enable_thinking
         print(f"[observe] loading {model} ...", flush=True)
         t0 = time.time()
         self.model, self.processor = load(model)
@@ -78,20 +95,29 @@ class Observer:
                 ids[v] = enc[0] if len(enc) == 1 else None  # 複数トークンに割れる語は計測不能扱い
             self._cand_ids[c["id"]] = ids
 
-    def ask(self, image_path: str, t: float, domain_hint: str, max_tokens: int = 200) -> dict:
+    def ask(self, image_path: str, t: float, domain_hint: str, max_tokens: int = 200,
+            prefill: str = "") -> dict:
         from mlx_vlm.generate import stream_generate
         from mlx_vlm.prompt_utils import apply_chat_template
 
         mx = self._mx
         prompt = build_prompt(self.questions, domain_hint, t)
-        formatted = apply_chat_template(self.processor, self.config, prompt, num_images=1)
+        tmpl_kwargs = {}
+        if self.enable_thinking is not None:
+            tmpl_kwargs["enable_thinking"] = self.enable_thinking
+        formatted = apply_chat_template(self.processor, self.config, prompt, num_images=1, **tmpl_kwargs)
+        # アシスタント応答をprefill(例: "{")で始めさせる。Molmoのように
+        # プロンプト末尾が"}"で終わると「JSONは完成済み」と誤解して最初のトークンで
+        # EOSを出し、空応答になるモデルがある。prefillで生成の口火を切らせる。
+        if prefill:
+            formatted = formatted + prefill
         try:
             mx.reset_peak_memory()
         except Exception:
             pass
 
         tok = self.processor.tokenizer
-        full_text = ""
+        full_text = prefill  # prefillぶんも含めて有効なJSONとしてパースできるようにする
         confidence: dict[str, dict] = {}
         pending_question = None  # 直前が `"question_id":"` で終わっていれば、次トークンがその値
 

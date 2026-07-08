@@ -7,7 +7,7 @@
 - `src/` — モジュール直置き（パッケージ化していない。pip install不可・する予定もない）
   - `cli.py`（`run`/`observe`/`judge`） / `observe.py`（Phase 1: VLM観察） / `judge.py`（Phase 2: ルールエンジン） / `extract.py`（動画→フレーム） / `sop.py`（SOP YAML読み込み）
 - `examples/konro_inspection/` — モザイク済み実動画・抽出フレーム・回答ログ・SOP YAML 3種（正解 / 順序違反 / ステップ欠落）
-- `tools/replay_viewer/` — 結果をフレーム画像ごと1枚のHTMLにして再生するビューア。`python tools/replay_viewer/build.py` で再生成（同梱の `replay.html` は生成物）
+- `tools/replay_viewer/` — 結果をフレーム画像ごと1枚のHTMLにして再生するビューア。`python tools/replay_viewer/build.py` で生成（`replay.html` はbase64画像を埋め込む生成物のためgit管理外。`frames/` は同梱済み）
 - `tests/` — 実データに対する回帰テスト。VLM不要
 
 ## コマンド
@@ -38,6 +38,15 @@ python src/cli.py run --sop examples/konro_inspection/sop.yaml \
 - `occurrence` 未指定のeventはYAML宣言順に早い者勝ちで区間を取るため、宣言順を変えると結果が変わる。時系列N番目に固定したければ `occurrence: N`。
 - mlx-vlm実行中に稀にMetal GPU Hangが起きる。回答ログは1フレームごとに逐次保存しているので、再実行すれば途中から再開できる。
 - fpsを上げると精度が上がるとは限らない（短いノイズが単独検出として顕在化し、判定が反転した実測あり）。既定の1fpsを基準にする。
+
+## 試せるVLM（実測）
+
+`--model` にエイリアス（`python src/cli.py models` で一覧）かHF/mlx-communityのフルIDを渡す。mlx-vlm がロードでき単一画像で厳密なJSONを返せるモデルが対象。動作確認済み: Qwen3-VL 2B/4B（基準は `qwen3-4b`）・Qwen2.5-VL-3B・InternVL3-2B・Gemma4-E2B・MiniCPM-V 4.6・Molmo-7B・Cosmos-Reason1-7B。
+
+- **torch必須で不可**: SmolVLM・LFM2-VL（`.venv-vlm` は torch なしで画像プロセッサ生成に失敗）。
+- **JSON形式に追従できず不可**: Qwen2-VL-2B・Gemma-3n-E2B。`mlx-community/Perception-LM-*` は config.json 欠落でロード不可。
+
+**プロンプトは英語指示＋質問文をlegendに分離**（`observe.py::build_prompt`）。値スロットに質問文を入れると MiniCPM-V 等が値に質問文をエコーして yes/no が出ないため。`--prefill`（既定 `{"`）でアシスタント応答をJSONの最初のキーの途中まで固定する。これで (1) Molmoのように最初のトークンでEOSを出す空応答、(2) MiniCPM-V/Cosmosのように`<think>`でトークンを使い切りJSONに届かない、の両方を既定のまま回避でき、7モデル全てでクリーンな yes/no JSON が出る（実測）。思考の連鎖を使いたい時だけ `--prefill '' --max-tokens 1024`。
 
 ## 検証のしかた
 
