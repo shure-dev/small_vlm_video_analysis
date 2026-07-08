@@ -1,0 +1,818 @@
+[
+  {
+    "idx": 0,
+    "t": 0.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらかを手が操作しているか\",\n  \"flame\": \"コンロ上部のバーナーに炎が見えない\",\n  \"pointing\": \"人差し指が写っていない\",\n  \"grill\": \"魚焼きグリルは開いていない\",\n  \"battery\": \"電池ケースは見えない\",\n  \"gloves\": \"手に手袋は看不到\"}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9997,
+          "no": 0.0003
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.4688,
+          "no": 0.5312
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.0022,
+          "no": 0.9978
+        },
+        "argmax": "no"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.1733,
+          "no": 0.8267
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.9669,
+          "no": 0.0331
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0038,
+          "no": 0.9962
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3029.8
+  },
+  {
+    "idx": 1,
+    "t": 1.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらかを手が操作しているか\",\n  \"flame\": \"コンロ上部のバーナー(つまみの奥)に炎が見える\",\n  \"pointing\": \"人差し指を立てた手(指差し)が写っている\",\n  \"grill\": \"魚焼きグリルが開いているか\",\n  \"battery\": \"電池ケースに乾電池が見える\",\n  \"gloves\": \"手に手袋を着用している\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9996,
+          "no": 0.0004
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.5156,
+          "no": 0.4844
+        },
+        "argmax": "yes"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.852,
+          "no": 0.148
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.5312,
+          "no": 0.4688
+        },
+        "argmax": "yes"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.8355,
+          "no": 0.1645
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0021,
+          "no": 0.9979
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 2,
+    "t": 2.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"は\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9998,
+          "no": 0.0002
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.1259,
+          "no": 0.8741
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2227,
+          "no": 0.7773
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.1009,
+          "no": 0.8991
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0014,
+          "no": 0.9986
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 3,
+    "t": 3.0,
+    "raw": "{\n  \"knob\": \"左側のつまみ\",\n  \"flame\": \"はい\",\n  \"pointing\": \"はい\",\n  \"grill\": \"不明\",\n  \"battery\": \"不明\",\n  \"gloves\": \"不明\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9999,
+          "no": 0.0001
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.9966,
+          "no": 0.0034
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.133,
+          "no": 0.867
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.0637,
+          "no": 0.9363
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0001,
+          "no": 0.9999
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 4,
+    "t": 4.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"は\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9999,
+          "no": 0.0001
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.0901,
+          "no": 0.9099
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2227,
+          "no": 0.7773
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.1919,
+          "no": 0.8081
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0012,
+          "no": 0.9988
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 5,
+    "t": 5.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"は\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9994,
+          "no": 0.0006
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.0311,
+          "no": 0.9689
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2018,
+          "no": 0.7982
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.2227,
+          "no": 0.7773
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0019,
+          "no": 0.9981
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 6,
+    "t": 6.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"は\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9999,
+          "no": 0.0001
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.1259,
+          "no": 0.8741
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.9988,
+          "no": 0.0012
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.1733,
+          "no": 0.8267
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.1403,
+          "no": 0.8597
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0014,
+          "no": 0.9986
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 7,
+    "t": 7.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらかを手が操作しているか\",\n  \"flame\": \"コンロ上部のバーナー(つまみの奥)に炎が見えない\",\n  \"pointing\": \"人差し指を立てた手(指差し)が写っている\",\n  \"grill\": \"魚焼きグリルが開いている\",\n  \"battery\": \"電池ケースに乾電池が見えない\",\n  \"gloves\": \"手に手袋は看不到\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.2227,
+          "no": 0.7773
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.4688,
+          "no": 0.5312
+        },
+        "argmax": "no"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.5156,
+          "no": 0.4844
+        },
+        "argmax": "yes"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.8808,
+          "no": 0.1192
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0015,
+          "no": 0.9985
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 2927.3
+  },
+  {
+    "idx": 8,
+    "t": 8.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらかを手が操作しているか\",\n  \"flame\": \"コンロ上部のバーナー(つまみの奥)に炎が見えない\",\n  \"pointing\": \"人差し指を立てた手\",\n  \"grill\": \"魚焼きグリルが開いている\",\n  \"battery\": \"電池ケースに乾電池が見えない\",\n  \"gloves\": \"手に手袋は看不到\"}\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.1192,
+          "no": 0.8808
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.4688,
+          "no": 0.5312
+        },
+        "argmax": "no"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.5927,
+          "no": 0.4073
+        },
+        "argmax": "yes"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.8933,
+          "no": 0.1067
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0009,
+          "no": 0.9991
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 9,
+    "t": 9.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"は\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.0534,
+          "no": 0.9466
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.9999,
+          "no": 0.0001
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.3346,
+          "no": 0.6654
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.5,
+          "no": 0.5
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0009,
+          "no": 0.9991
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3031.5
+  },
+  {
+    "idx": 10,
+    "t": 10.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"は\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.0567,
+          "no": 0.9433
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.9998,
+          "no": 0.0002
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.3346,
+          "no": 0.6654
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.3923,
+          "no": 0.6077
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0012,
+          "no": 0.9988
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3032.7
+  },
+  {
+    "idx": 11,
+    "t": 11.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらかを手が操作しているか\",\n  \"flame\": \"コンロ上部のバーナー(つまみの奥)に炎が見えない\",\n  \"pointing\": \"人差し指を立てた手(指差し)が写っている\",\n  \"grill\": \"魚焼きグリルが開いている\",\n  \"battery\": \"電池ケースに乾電池が見えない\",\n  \"gloves\": \"手に手袋は看不到\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.0567,
+          "no": 0.9433
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.8355,
+          "no": 0.1645
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2942,
+          "no": 0.7058
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.9466,
+          "no": 0.0534
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0013,
+          "no": 0.9987
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3032.7
+  },
+  {
+    "idx": 12,
+    "t": 12.0,
+    "raw": "{\n  \"knob\": \"yes/no\",\n  \"flame\": \"no/unclear\",\n  \"pointing\": \"yes/no\",\n  \"grill\": \"unclear\",\n  \"battery\": \"yes/no\",\n  \"gloves\": \"no\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9809,
+          "no": 0.0191
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.1192,
+          "no": 0.8808
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2227,
+          "no": 0.7773
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.9987,
+          "no": 0.0013
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0,
+          "no": 1.0
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3032.7
+  },
+  {
+    "idx": 13,
+    "t": 13.0,
+    "raw": "{\n  \"knob\": \"yes/no\",\n  \"flame\": \"no\",\n  \"pointing\": \"yes/no\",\n  \"grill\": \"unclear\",\n  \"battery\": \"yes/no\",\n  \"gloves\": \"no\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 0.9999,
+          "no": 0.0001
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.011,
+          "no": 0.989
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.0013,
+          "no": 0.9987
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.9998,
+          "no": 0.0002
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0,
+          "no": 1.0
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3032.7
+  },
+  {
+    "idx": 14,
+    "t": 14.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらかを手が操作しているか\",\n  \"flame\": \"コンロ上部のバーナー(つまみの奥)に炎が見えない\",\n  \"pointing\": \"人差し指を立てた手\",\n  \"grill\": \"魚焼きグリルが開いている\",\n  \"battery\": \"電池ケースに乾電池が見えない\",\n  \"gloves\": \"手袋は着用していない\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.0601,
+          "no": 0.9399
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.8933,
+          "no": 0.1067
+        },
+        "argmax": "yes"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2814,
+          "no": 0.7186
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.9526,
+          "no": 0.0474
+        },
+        "argmax": "yes"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0036,
+          "no": 0.9964
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3032.7
+  },
+  {
+    "idx": 15,
+    "t": 15.0,
+    "raw": "{\n  \"knob\": \"左右2つ並んだつまみのどちらか\",\n  \"flame\": \"否\",\n  \"pointing\": \"否\",\n  \"grill\": \"不明\",\n  \"battery\": \"否\",\n  \"gloves\": \"否\"\n}<|im_end|>",
+    "confidence": {
+      "knob": {
+        "probs": {
+          "yes": 1.0,
+          "no": 0.0
+        },
+        "argmax": "yes"
+      },
+      "flame": {
+        "probs": {
+          "yes": 0.148,
+          "no": 0.852
+        },
+        "argmax": "no"
+      },
+      "pointing": {
+        "probs": {
+          "yes": 0.0041,
+          "no": 0.9959
+        },
+        "argmax": "no"
+      },
+      "grill": {
+        "probs": {
+          "yes": 0.2227,
+          "no": 0.7773
+        },
+        "argmax": "no"
+      },
+      "battery": {
+        "probs": {
+          "yes": 0.2451,
+          "no": 0.7549
+        },
+        "argmax": "no"
+      },
+      "gloves": {
+        "probs": {
+          "yes": 0.0091,
+          "no": 0.9909
+        },
+        "argmax": "no"
+      }
+    },
+    "active_mb": 2160.7,
+    "peak_mb": 3032.7
+  }
+]

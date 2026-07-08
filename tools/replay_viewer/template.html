@@ -34,6 +34,16 @@
     z-index: 10;
   }
   header h1 { font-size: 17px; margin: 0; font-weight: 600; flex: 1; }
+  #modelPicker { font-size: 12px; color: #666; white-space: nowrap; }
+  #modelSelect {
+    font-size: 13px;
+    padding: 4px 8px;
+    margin-left: 4px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-family: inherit;
+  }
   .badge {
     font-size: 15px;
     font-weight: 700;
@@ -215,6 +225,7 @@
 <body>
   <header>
     <h1 id="sopName"></h1>
+    <label id="modelPicker">モデル<select id="modelSelect"></select></label>
     <span id="coverage"></span>
     <span id="verdictBadge" class="badge"></span>
   </header>
@@ -253,6 +264,9 @@
 <script>
 const DATA = "__REPLAY_DATA__";
 
+let model = DATA.model_order[0];   // 現在選択中のモデル名
+const M = () => DATA.models[model];  // そのモデルの判定・観察結果
+
 const notOnly = new Set(
   DATA.relations
     .map(r => /^\s*not\s+(\w+)\s*$/.exec(r))
@@ -261,17 +275,17 @@ const notOnly = new Set(
 );
 
 document.getElementById("sopName").textContent = DATA.sop.name;
-document.getElementById("coverage").textContent = `coverage ${Math.round(DATA.coverage * 100)}%`;
-const badge = document.getElementById("verdictBadge");
-badge.textContent = DATA.verdict === "PASS" ? "✅ PASS" : "❌ FAIL";
-badge.className = "badge " + (DATA.verdict === "PASS" ? "pass" : "fail");
 
-const violUl = document.getElementById("violations");
-DATA.violations.forEach(v => {
-  const li = document.createElement("li");
-  li.textContent = "違反: " + v;
-  violUl.appendChild(li);
+// モデル切替プルダウン(判定バッジ付き)。relationsは全モデル共通なので下で一度だけ描く。
+const modelSelect = document.getElementById("modelSelect");
+DATA.model_order.forEach(name => {
+  const opt = document.createElement("option");
+  opt.value = name;
+  opt.textContent = `${name}  ${DATA.models[name].verdict === "PASS" ? "✅" : "❌"}`;
+  modelSelect.appendChild(opt);
 });
+modelSelect.value = model;
+modelSelect.addEventListener("change", () => { model = modelSelect.value; renderHeader(); render(); });
 
 const relUl = document.getElementById("relations");
 DATA.relations.forEach(r => {
@@ -291,6 +305,22 @@ function pillClass(v) {
   if (v === "yes") return "pill yes";
   if (v === "unclear") return "pill unclear";
   return "pill no";
+}
+
+// モデル依存のヘッダ(coverage/判定/違反)を選択モデルに合わせて描き直す。
+function renderHeader() {
+  document.getElementById("coverage").textContent = `coverage ${Math.round(M().coverage * 100)}%`;
+  const badge = document.getElementById("verdictBadge");
+  badge.textContent = M().verdict === "PASS" ? "✅ PASS" : "❌ FAIL";
+  badge.className = "badge " + (M().verdict === "PASS" ? "pass" : "fail");
+
+  const violUl = document.getElementById("violations");
+  violUl.innerHTML = "";
+  M().violations.forEach(v => {
+    const li = document.createElement("li");
+    li.textContent = "違反: " + v;
+    violUl.appendChild(li);
+  });
 }
 
 function renderQuestions(frame) {
@@ -313,7 +343,7 @@ function renderQuestions(frame) {
 function renderEvents() {
   const box = document.getElementById("events");
   box.innerHTML = "";
-  for (const [name, ev] of Object.entries(DATA.events)) {
+  for (const [name, ev] of Object.entries(M().events)) {
     const detected = ev.start_idx !== null;
     const isNotOnly = notOnly.has(name);
     const active = detected && idx >= ev.start_idx && idx <= ev.end_idx;
@@ -363,10 +393,10 @@ function renderEvents() {
 }
 
 function render() {
-  const frame = DATA.frames[idx];
-  document.getElementById("frameImg").src = frame.image;
+  const frame = M().frames[idx];
+  document.getElementById("frameImg").src = DATA.images[idx];
   document.getElementById("timeLabel").textContent =
-    `t=${frame.t.toFixed(1)}s  (${idx + 1}/${DATA.n_frames})`;
+    `t=${DATA.times[idx].toFixed(1)}s  (${idx + 1}/${DATA.n_frames})`;
   document.getElementById("rawOutput").textContent = frame.raw;
   scrubber.value = idx;
   renderQuestions(frame);
@@ -403,6 +433,7 @@ window.addEventListener("keydown", (e) => {
   if (e.key === " ") { e.preventDefault(); document.getElementById("playBtn").click(); }
 });
 
+renderHeader();
 render();
 </script>
 </body>
