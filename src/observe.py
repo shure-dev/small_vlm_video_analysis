@@ -28,17 +28,27 @@ def _as_yaml_safe_str(v: Any) -> str:
 
 
 def build_prompt(questions: list[dict[str, Any]], domain_hint: str, t: float) -> str:
-    """SOPの questions: 定義から、1フレーム分の観察プロンプトを自動生成する。"""
-    schema_parts = []
+    """SOPの questions: 定義から、1フレーム分の観察プロンプトを自動生成する。
+
+    設計(experiments/ で7モデル実測):
+    - 質問文は値スロットに入れず legend に分離する。値スロットに質問文を入れると
+      MiniCPM-V等の小型モデルが値へ質問文をそのままエコーし、yes/noが出なくなる。
+    - 指示は英語にすると小型モデルでも追従しやすい(質問文自体は元の言語のまま保持)。
+    - prefill='{"'(既定)と併用する前提。空の値スロットだけだと Molmo が「完成済み」と
+      みなして空応答するが、prefillが最初のキーの途中まで固定するので生成が続く。
+    """
+    legend_parts, schema_parts = [], []
     for c in questions:
         values = [_as_yaml_safe_str(v) for v in c.get("values", ["yes", "no"])]
-        ask = c["ask"]
-        schema_parts.append(f'"{c["id"]}":"{ask} {"/".join(values)}"')
+        legend_parts.append(f'- {c["id"]}: {c["ask"]} (answer with {" or ".join(values)})')
+        schema_parts.append(f'"{c["id"]}":""')
+    legend = "\n".join(legend_parts)
     schema = "{" + ",".join(schema_parts) + "}"
     return (
-        f"{domain_hint}（時刻 t={t}s）。"
-        "見えている事実だけを、次のJSONで簡潔に答えてください"
-        "（憶測禁止・値は指定された選択肢のみ）:\n" + schema
+        f"{domain_hint} (time t={t}s). Report only what you can see (no guessing).\n"
+        f"Fields:\n{legend}\n"
+        "Fill each JSON value with exactly one allowed word (e.g. yes/no/unclear). "
+        "Do NOT repeat the question text as the value:\n" + schema
     )
 
 

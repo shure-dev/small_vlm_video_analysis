@@ -61,7 +61,7 @@ def _print_result(sop_name: str, result: JudgeResult) -> None:
 
 
 def _run_observer(sop, meta_or_paths, model_key, out_path, max_tokens=200,
-                  thinking="auto", prefill="{"):
+                  thinking="auto", prefill='{"'):
     """meta_or_pathsは[{"idx","t","path"}] または [path,...](idxはenumerateで振る)。"""
     from observe import Observer
 
@@ -150,9 +150,9 @@ def _add_model_args(p):
                    help="1フレームあたりの最大生成トークン(既定: 200)。思考モデルは1024程度に上げる")
     p.add_argument("--thinking", choices=["auto", "on", "off"], default="auto",
                    help="思考モードの明示指定(既定: auto=モデル任せ)。テンプレートが対応する場合のみ有効")
-    p.add_argument("--prefill", default="{",
-                   help="アシスタント応答の先頭に差し込む文字列(既定: '{')。"
-                        "Molmo等の空応答やMiniCPM等の思考切り詰めを防ぐ。思考させたい時は '' で無効化")
+    p.add_argument("--prefill", default='{"',
+                   help="アシスタント応答の先頭に差し込む文字列(既定: '{\"')。JSONを最初のキーの"
+                        "途中まで固定し、Molmoの空応答やMiniCPMの思考/エコーを防ぐ。思考させたい時は '' で無効化")
 
 
 def main():
