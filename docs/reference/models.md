@@ -1,0 +1,37 @@
+# モデルと生成オプション
+
+`sop-check observe` と `sop-check run` の `--model` には、エイリアスまたはHugging Face / mlx-communityの完全なモデルIDを渡せます。既定値は `qwen3-4b` です。
+
+## 登録済みエイリアス
+
+| エイリアス | モデル | 注意点 |
+|---|---|---|
+| `qwen3-2b` / `qwen3-4b` | Qwen3-VL 2B / 4B | 2BはJSON出力が崩れやすい |
+| `qwen3.5-0.8b` / `qwen3.5-2b` / `qwen3.5-4b` | Qwen3.5 0.8B / 2B / 4B | 早期fusionのネイティブVLM |
+| `lfm2.5-1.6b` | LFM2.5-VL 1.6B | mlx-vlm 0.6.4以上が必要 |
+| `qwen2.5-3b` | Qwen2.5-VL-3B | — |
+| `internvl3-2b` | InternVL3-2B | — |
+| `gemma4-e2b` | Gemma4-E2B | — |
+| `minicpm-4.6` | MiniCPM-V 4.6 | 思考モデル |
+| `molmo-7b` | Molmo-7B | — |
+| `cosmos-7b` | Cosmos-Reason1-7B | 思考モデル |
+
+利用できるエイリアスは、インストール後に次のコマンドでも確認できます。
+
+```bash
+sop-check models
+```
+
+## 生成オプション
+
+| オプション | 既定値 | 用途 |
+|---|---:|---|
+| `--prefill STR` | `{"` | JSONの先頭を固定し、空応答や長い思考を抑える |
+| `--max-tokens N` | `200` | 最大生成トークン数を指定する |
+| `--thinking {auto,on,off}` | `auto` | 対応モデルの思考モードを指定する |
+
+思考過程を使う場合は `--prefill '' --max-tokens 1024` などに変更します。ただし、このプロジェクトのフレームごとの質問回答では、短いyes/no JSONを安定して返す設定を優先しています。
+
+## SmolVLM2について
+
+Konroベンチマークでは、SmolVLM2の3モデルだけ `--backend transformers` で計測しました。mlx-community変換とmlx-vlmの組み合わせでは視覚入力の問題があり、同じ条件で比較できなかったためです。再現条件は[Konroベンチマーク結果](../benchmark/konro-results.md)に記載しています。
