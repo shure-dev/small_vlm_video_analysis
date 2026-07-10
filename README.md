@@ -166,28 +166,37 @@ sop-check eval \
 
 ### Konro Inspection
 
-同一の16フレームに対し、3種類のSOP条件と15モデルを比較した完結デモです。人手アノテーションを正解として評価しています。
+同一の16フレームに対し、3種類のSOP条件（正しい手順 / 順序違反 / ステップ欠落）と15モデルを比較した完結デモです。人手アノテーションを正解として評価しています。上位のみ抜粋:
 
-| 条件 | 正解 | Qwen3-VL-4B |
-|---|---|---:|
-| 正しい手順 | PASS | ✅ |
-| 順序違反 | FAIL + 順序逆転を指摘 | ✅ |
-| ステップ欠落 | FAIL + 欠落を指摘 | ✅ |
+| モデル | relations正答 | mean tIoU | 判定 |
+|---|:---:|---:|:---:|
+| Qwen3-VL-4B | 6/6 | 0.80 | 3/3 |
+| Qwen2.5-VL-3B | 5/6 | 0.62 | 2/3 |
+| SmolVLM2-2.2B† | 4/6 | 0.60 | 1/3 |
+| Cosmos-Reason1-7B | 4/6 | 0.59 | 1/3 |
+| Qwen3.5-4B | 4/6 | 0.53 | 2/3 |
 
-Qwen3-VL-4Bは、このデモで唯一、判定3/3とrelation 6/6を達成しました。フレーム一致率は96%、mean tIoUは0.80でした。ただし、これは単一の短い動画に対する結果であり、一般的な現場性能を示すものではありません。
-
-15モデルの全結果と再現コマンドは[Konroベンチマーク結果](docs/benchmark/konro-results.md)にあります。
+3条件すべてで判定と違反理由を当てたのはQwen3-VL-4Bだけでした。ただし、これは単一の短い動画に対する結果であり、一般的な現場性能を示すものではありません。15モデルの全結果と再現コマンドは[Konroベンチマーク結果](docs/benchmark/konro-results.md)にあります（†はtransformersバックエンド計測）。
 
 ### Factory Ego
 
 Egocentric-10Kから切り出した8 unit × 20 framesを使い、モデル間の精度比較を準備している開発用データセットです。
 
 - 現在の8 unitは、すべて同じfactory / workerの `dev_seen`
-- Fable 5、Opus 4.8、Qwen3-VL-4Bの出力は、すべて対等なprediction run
+- Fable 5、Opus 4.8とローカル小型VLM（Qwen3-VL-4B、Qwen3.5-4B、Qwen2.5-VL-3B）の出力は、すべて対等なprediction run
 - 人手ground truthは未作成のため、正式なprecision、recall、F1、tIoUは未計測
 - upstreamがgated datasetのため、抽出フレームは公開リポジトリに含めず、SHA manifestだけを追跡
 
-現時点の比較は予備的なモデル間一致と回答分布に限られます。詳細は[Factory Ego README](datasets/factory_ego/README.md)と[モデル比較レポート](reports/model_comparison.md)を参照してください。
+人手GTができるまでの予備比較として、reference予測（Fable 5）とのイベント区間一致（mean tIoU）を測っています。精度ではありません:
+
+| モデル | mean tIoU (vs Fable 5) |
+|---|---:|
+| Claude Opus 4.8 † | 0.89 |
+| Qwen3-VL-4B | 0.67 |
+| Qwen3.5-4B | 0.65 |
+| Qwen2.5-VL-3B | 0.56 |
+
+† Opusは共通1 unit・10フレームのみ。大型モデル同士のこの0.89が一致の上限アンカーで、ローカル勢ではKonro上位のQwen3-VL-4Bが最も近い区間を出します。詳細は[Factory Ego README](datasets/factory_ego/README.md)と[モデル比較レポート](reports/model_comparison.md)を参照してください。
 
 ## データセットと実験結果の置き場
 

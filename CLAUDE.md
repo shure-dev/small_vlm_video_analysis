@@ -12,7 +12,7 @@
 - `runs/` — Fable・Opus・Qwenを対等に扱う不変のprediction run。raw、正規化予測、入力lockを保持
 - `evaluations/` — 人手GT revisionとprediction runを入力にする評価run（Factory Egoは人手GT未作成のため現在は空）
 - `reports/` — 比較結果。人手GTがない間は一致率等を「精度」と表記しない
-- `tools/benchmark/` — Factory Egoの安全な移行（既定dry-run・上書き拒否）と整合性検証
+- `tools/benchmark/` — Factory Egoの安全な移行（既定dry-run・上書き拒否）、整合性検証、ローカルモデルのprediction run作成（`run_local_prediction.py`）、referenceとの区間tIoU予備比較（`reference_tiou.py`）
 - `tools/quality/` — Markdown link等のrepository品質検査。ユーザー向け機能は置かない
 - `schemas/benchmark/v1/` — unit・run・prediction・splitのversioned JSON Schema
 - `docs/` — 設計・評価ポリシー・運用・ADRの正本。READMEには概要とクイックスタートだけを置く
