@@ -116,12 +116,25 @@ def main() -> None:
     ref_model = reference["run"]["model"]["name"]
     print(f"reference: {args.reference} ({ref_model})")
     print("referenceは人手GTではないため、以下は精度ではなくモデル間の区間一致(予備比較)。\n")
-    print("| model | units | 両検出 | ref側のみ | 比較側のみ | 両者なし | mean tIoU |")
-    print("|---|---:|---:|---:|---:|---:|---:|")
+    print("| model | units | mean tIoU |")
+    print("|---|---:|---:|")
     for r in results:
         mt = f"{r['mean_tiou']:.2f}" if r["mean_tiou"] is not None else "—"
-        print(f"| {r['candidate_model']} | {r['units']} | {r['both_detected']}/{r['events_total']} "
-              f"| {r['ref_only']} | {r['cand_only']} | {r['both_absent']} | {mt} |")
+        print(f"| {r['candidate_model']} | {r['units']} | {mt} |")
+
+    # 片側しか検出しなかったイベントはtIoUを測れないので、表の外に注記する
+    notes = []
+    for r in results:
+        for row in r["rows"]:
+            if row["status"] == "ref_only":
+                notes.append(f"- {r['candidate_model']}: {row['unit']} の {row['event']} を検出せず"
+                             f"(referenceは検出。tIoU平均から除外)")
+            elif row["status"] == "cand_only":
+                notes.append(f"- {r['candidate_model']}: {row['unit']} の {row['event']} を"
+                             f"referenceは検出していない(tIoU平均から除外)")
+    if notes:
+        print("\ntIoUを測れなかったイベント:")
+        print("\n".join(notes))
 
     if args.json:
         payload = {"reference_run": args.reference, "reference_model": ref_model,

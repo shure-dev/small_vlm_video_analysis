@@ -16,33 +16,35 @@
 
 ## Reference tIoU（予備比較・精度ではない）
 
-各runの回答から決定論的judgeでイベント区間を導き、reference予測の区間との重なり（mean tIoU）を測りました。referenceは人手GTではないため、これは「大型モデルとどれだけ同じ区間を見たか」というモデル間一致であり、精度として読まないでください。比較は共通unit・共通フレームidxに制限し、mean tIoUは両run検出ペアのみの平均です。
+各runの回答から決定論的judgeでイベント区間を導き、reference予測の区間との重なり（mean tIoU）を測りました。referenceは人手GTではないため、これは「大型モデルとどれだけ同じ区間を見たか」というモデル間一致であり、精度として読まないでください。比較は共通unit・共通フレームidxに制限します。
 
 再現: `python3 tools/benchmark/reference_tiou.py --reference <run_id>`。イベント別の詳細は [`reports/data/`](data/) のJSONにあります。
 
 ### vs Claude Fable 5（8 unit・24イベント）
 
-| model | 両検出 | ref側のみ | mean tIoU |
-|---|---:|---:|---:|
-| Claude Opus 4.8 † | 3/3 | 0 | 0.89 |
-| Qwen3-VL-4B-Instruct 4-bit | 23/24 | 1 | 0.67 |
-| Qwen3.5-4B 4-bit | 23/24 | 1 | 0.65 |
-| Qwen2.5-VL-3B-Instruct 4-bit | 23/24 | 1 | 0.56 |
+| model | mean tIoU |
+|---|---:|
+| Claude Opus 4.8 † | 0.89 |
+| Qwen3-VL-4B-Instruct 4-bit | 0.67 |
+| Qwen3.5-4B 4-bit | 0.65 |
+| Qwen2.5-VL-3B-Instruct 4-bit | 0.56 |
 
 † Opusは共通1 unit（assembly）・先頭10フレームのみの比較。
 
+なお、Qwen系はいずれも24イベント中1件だけ検出できなかったイベントがあり（Qwen3系: part_pickの`reach_up`、Qwen2.5: board_cablesの`move_board`）、その1件はtIoUの平均から除外しています。
+
 ### vs Claude Opus 4.8（1 unit・3イベント・先頭10フレーム）
 
-| model | 両検出 | mean tIoU |
-|---|---:|---:|
-| Claude Fable 5 | 3/3 | 0.89 |
-| Qwen3-VL-4B-Instruct 4-bit | 3/3 | 0.83 |
-| Qwen3.5-4B 4-bit | 3/3 | 0.73 |
-| Qwen2.5-VL-3B-Instruct 4-bit | 3/3 | 0.46 |
+| model | mean tIoU |
+|---|---:|
+| Claude Fable 5 | 0.89 |
+| Qwen3-VL-4B-Instruct 4-bit | 0.83 |
+| Qwen3.5-4B 4-bit | 0.73 |
+| Qwen2.5-VL-3B-Instruct 4-bit | 0.46 |
 
 ## 読みかた
 
 - 大型モデル同士（Fable 5 × Opus 4.8）の一致0.89が、この課題での実質的な一致上限のアンカーになります。
 - ローカル勢ではQwen3-VL-4Bが両referenceに最も近く、Konroの人手GT評価（tIoU 0.80・判定3/3）での首位と整合します。
 - Qwen3.5-4BとQwen2.5-VL-3Bの順位はKonroのGT評価（Qwen2.5が上）と入れ替わっており、単一動画の結果が別ドメインでそのまま保たれるわけではないことを示しています。
-- イベントの検出有無はほぼ全モデルで一致（23〜24/24）しており、差は境界の取り方に出ています。
+- 「イベントが起きたかどうか」の判断はほぼ全モデルで一致しており、差は区間の境界の取り方に出ています。
