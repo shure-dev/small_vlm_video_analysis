@@ -23,9 +23,9 @@ MIGRATION_DATE = "2026-07-10"
 DATASET_ID = "factory_ego"
 SPLIT_ID = "development-v001"
 
-FABLE_RUN_ID = "20260710-fable5-reference-r1"
-OPUS_RUN_ID = "20260710-opus48-reference-r1"
-QWEN_RUN_ID = "20260710-qwen3-4b-baseline-r1"
+FABLE_RUN_ID = "20260710-factory_ego-fable5-reference-r1"
+OPUS_RUN_ID = "20260710-factory_ego-opus48-reference-r1"
+QWEN_RUN_ID = "20260710-factory_ego-qwen3-4b-baseline-r1"
 
 
 @dataclass(frozen=True)
@@ -103,9 +103,9 @@ REPORT = """# Factory Ego model comparison
 
 | run | role | unit coverage | formal accuracy |
 |---|---|---:|---|
-| `20260710-fable5-reference-r1` | large-model reference prediction | 8/8 | 未評価（人手GTなし） |
-| `20260710-opus48-reference-r1` | large-model reference prediction | 1/8、10 framesのみ | 未評価（人手GTなし） |
-| `20260710-qwen3-4b-baseline-r1` | local small-VLM baseline | 8/8 | 未評価（人手GTなし） |
+| `20260710-factory_ego-fable5-reference-r1` | large-model reference prediction | 8/8 | 未評価（人手GTなし） |
+| `20260710-factory_ego-opus48-reference-r1` | large-model reference prediction | 1/8、10 framesのみ | 未評価（人手GTなし） |
+| `20260710-factory_ego-qwen3-4b-baseline-r1` | local small-VLM baseline | 8/8 | 未評価（人手GTなし） |
 
 人手GT作成前に計算できるのは、一致率・回答分布・境界差などの予備比較です。precision、recall、F1、balanced accuracy、tIoUはhuman annotation revisionを入力にしたevaluation runで計算します。
 """
@@ -563,6 +563,8 @@ def migrate(repo: Path, legacy: Path, scratch: Path, writer: Writer) -> None:
             "role": "large_model_reference_prediction",
             "unit_count": 8,
             "formal_accuracy": None,
+            "dataset": DATASET_ID,
+            "split": SPLIT_ID,
         },
         {
             "run_id": OPUS_RUN_ID,
@@ -571,6 +573,8 @@ def migrate(repo: Path, legacy: Path, scratch: Path, writer: Writer) -> None:
             "role": "large_model_reference_prediction",
             "unit_count": 1,
             "formal_accuracy": None,
+            "dataset": DATASET_ID,
+            "split": SPLIT_ID,
         },
         {
             "run_id": QWEN_RUN_ID,
@@ -579,6 +583,8 @@ def migrate(repo: Path, legacy: Path, scratch: Path, writer: Writer) -> None:
             "role": "local_small_vlm_baseline",
             "unit_count": 8,
             "formal_accuracy": None,
+            "dataset": DATASET_ID,
+            "split": SPLIT_ID,
         },
     ]
     writer.write_json(repo / "runs" / "index.jsonl", index, jsonl=True)

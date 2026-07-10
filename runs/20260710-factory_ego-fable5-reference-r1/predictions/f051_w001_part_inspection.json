@@ -210,7 +210,7 @@
     "reach_shelf": "腕が壁際の部品棚へ伸びている",
     "tray_visible": "黒い格子トレイが画面内に見える"
   },
-  "run_id": "20260710-fable5-reference-r1",
+  "run_id": "20260710-factory_ego-fable5-reference-r1",
   "schema_version": "1.0",
   "source_format": "0.1-frames",
   "unit_id": "f051_w001_part_inspection"

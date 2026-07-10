@@ -210,7 +210,7 @@
     "hold_tray": "製品入りの黒トレイを手で持っている",
     "walking": "工場内を歩いて移動している(床が大きく流れ、手作業なし)"
   },
-  "run_id": "20260710-fable5-reference-r1",
+  "run_id": "20260710-factory_ego-fable5-reference-r1",
   "schema_version": "1.0",
   "source_format": "0.1-frames",
   "unit_id": "f051_w001_tray_handoff"

@@ -1,5 +1,5 @@
 schema_version: '1.0'
-run_id: 20260710-opus48-reference-r1
+run_id: 20260710-factory_ego-opus48-reference-r1
 kind: prediction
 status: complete
 immutable: true

@@ -209,7 +209,7 @@
     "handle_part": "着席してトレイ上で部品を両手で扱っている",
     "reach_up": "腕を上/前方へ伸ばして棚・壁面の部品を取ろうとしている"
   },
-  "run_id": "20260710-fable5-reference-r1",
+  "run_id": "20260710-factory_ego-fable5-reference-r1",
   "schema_version": "1.0",
   "source_format": "0.1-frames",
   "unit_id": "f051_w001_part_pick"

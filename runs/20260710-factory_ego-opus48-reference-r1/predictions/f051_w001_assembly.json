@@ -111,7 +111,7 @@
     "reach_rack": "腕が頭上の緑基板ラックへ伸びている",
     "tray_visible": "格子状の黒トレイが画面内に見える"
   },
-  "run_id": "20260710-opus48-reference-r1",
+  "run_id": "20260710-factory_ego-opus48-reference-r1",
   "schema_version": "1.0",
   "source_format": "0.1-frames",
   "unit_id": "f051_w001_assembly"

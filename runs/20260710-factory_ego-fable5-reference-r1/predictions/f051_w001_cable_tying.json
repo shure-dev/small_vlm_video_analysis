@@ -211,7 +211,7 @@
     "rack_visible": "緑基板ラック(多段の棚)が画面内に見える",
     "seated_work": "座って膝の上で手作業をしている(体・膝が画面下半分を占める)"
   },
-  "run_id": "20260710-fable5-reference-r1",
+  "run_id": "20260710-factory_ego-fable5-reference-r1",
   "schema_version": "1.0",
   "source_format": "0.1-frames",
   "unit_id": "f051_w001_cable_tying"
