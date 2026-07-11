@@ -1,0 +1,55 @@
+sop:
+  id: f006_w005_compression_molding
+  name: 'Factory Ego: f006_w005_compression_molding'
+  domain_hint: 'First-person camera of a worker at a hydraulic compression press handling a multi-part mold, an air gun, and a control panel.'
+questions:
+- id: eject_block
+  ask: 'Considering the motion across the recent frames, is the worker striking or shaking the inverted mold to eject the compressed block in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: clean_mold
+  ask: 'Considering the motion across the recent frames, is the worker blowing debris out of the mold cavities with the air gun in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: load_mold
+  ask: 'Considering the motion across the recent frames, is the worker loading the assembled mold back into the hydraulic press in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: press_controls
+  ask: 'Considering the motion across the recent frames, is the worker operating the control panel to activate the press in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  eject_block:
+    evidence: eject_block==yes
+    min_frames: 2
+  clean_mold:
+    evidence: clean_mold==yes
+    min_frames: 2
+  load_mold:
+    evidence: load_mold==yes
+    min_frames: 1
+  press_controls:
+    evidence: press_controls==yes
+    min_frames: 1
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory006_worker005_00002; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: eject_block
+      window_offset_estimate: '0-4s'
+    - event: clean_mold
+      window_offset_estimate: '3-6s'
+    - event: load_mold
+      window_offset_estimate: '6-8s'
+    - event: press_controls
+      window_offset_estimate: '8-9s'

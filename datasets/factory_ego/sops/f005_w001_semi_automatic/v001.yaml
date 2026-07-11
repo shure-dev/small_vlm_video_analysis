@@ -1,0 +1,45 @@
+sop:
+  id: f005_w001_semi_automatic
+  name: 'Factory Ego: f005_w001_semi_automatic'
+  domain_hint: 'First-person camera of a worker at a semi-automatic stator winding machine handling copper wire and stator cores, with a metal table nearby.'
+questions:
+- id: unload_stator
+  ask: 'Considering the motion across the recent frames, is the worker removing the wound stator from the machine''s central fixture in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: carry_stator
+  ask: 'Considering the motion across the recent frames, is the worker walking or standing away from the machine while holding the stator in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: mount_stator
+  ask: 'Considering the motion across the recent frames, is the worker placing the stator back onto the machine fixture or threading the copper wire in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  unload_stator:
+    evidence: unload_stator==yes
+    min_frames: 1
+  carry_stator:
+    evidence: carry_stator==yes
+    min_frames: 2
+  mount_stator:
+    evidence: mount_stator==yes
+    min_frames: 2
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory005_worker001_00002; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: unload_stator
+      window_offset_estimate: '0-2s'
+    - event: carry_stator
+      window_offset_estimate: '2-6s'
+    - event: mount_stator
+      window_offset_estimate: '6-9s'

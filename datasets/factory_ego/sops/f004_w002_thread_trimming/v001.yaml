@@ -1,0 +1,45 @@
+sop:
+  id: f004_w002_thread_trimming
+  name: 'Factory Ego: f004_w002_thread_trimming'
+  domain_hint: 'First-person camera of a worker at a garment finishing table trimming threads from white onesies with small blue snipping scissors.'
+questions:
+- id: fold_stack
+  ask: 'Considering the motion across the recent frames, is the worker folding a white garment and placing it onto the finished pile in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: pick_new
+  ask: 'Considering the motion across the recent frames, is the worker pulling a new white garment from the unfinished pile and laying it out in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: snip_threads
+  ask: 'Considering the motion across the recent frames, is the worker trimming loose threads from the garment with small snipping scissors in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  fold_stack:
+    evidence: fold_stack==yes
+    min_frames: 2
+  pick_new:
+    evidence: pick_new==yes
+    min_frames: 2
+  snip_threads:
+    evidence: snip_threads==yes
+    min_frames: 1
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory004_worker002_00006; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: fold_stack
+      window_offset_estimate: '0-4s'
+    - event: pick_new
+      window_offset_estimate: '4-8s'
+    - event: snip_threads
+      window_offset_estimate: '8-9s'

@@ -1,0 +1,55 @@
+sop:
+  id: f005_w011_cnc_machine
+  name: 'Factory Ego: f005_w011_cnc_machine'
+  domain_hint: 'First-person camera of a worker tending a CNC lathe with a sliding door, swapping raw and finished parts at the chuck.'
+questions:
+- id: open_door
+  ask: 'Considering the motion across the recent frames, is the worker sliding open the CNC machine door in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: swap_parts
+  ask: 'Considering the motion across the recent frames, is the worker exchanging the finished part for a raw part at the machine chuck in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: close_door
+  ask: 'Considering the motion across the recent frames, is the worker sliding the CNC machine door closed in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: start_cycle
+  ask: 'Considering the motion across the recent frames, is the worker pressing the button or panel control to start the machining cycle in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  open_door:
+    evidence: open_door==yes
+    min_frames: 1
+  swap_parts:
+    evidence: swap_parts==yes
+    min_frames: 2
+  close_door:
+    evidence: close_door==yes
+    min_frames: 1
+  start_cycle:
+    evidence: start_cycle==yes
+    min_frames: 1
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory005_worker011_00000; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: open_door
+      window_offset_estimate: '0-2s'
+    - event: swap_parts
+      window_offset_estimate: '2-6s'
+    - event: close_door
+      window_offset_estimate: '6-8s'
+    - event: start_cycle
+      window_offset_estimate: '8-9s'

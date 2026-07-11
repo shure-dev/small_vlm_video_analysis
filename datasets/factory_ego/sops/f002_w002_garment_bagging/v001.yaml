@@ -1,0 +1,45 @@
+sop:
+  id: f002_w002_garment_bagging
+  name: 'Factory Ego: f002_w002_garment_bagging'
+  domain_hint: 'First-person camera of a worker at a packing table with a stack of light purple garments, white cardboard stiffeners, and clear plastic bags.'
+questions:
+- id: fold_garment
+  ask: 'Considering the motion across the recent frames, is the worker folding a light purple garment around a white cardboard stiffener in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: insert_bag
+  ask: 'Considering the motion across the recent frames, is the worker sliding a folded garment into a clear plastic bag in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: seal_bag
+  ask: 'Considering the motion across the recent frames, is the worker peeling the adhesive strip or pressing the bag flap shut to seal the package in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  fold_garment:
+    evidence: fold_garment==yes
+    min_frames: 2
+  insert_bag:
+    evidence: insert_bag==yes
+    min_frames: 2
+  seal_bag:
+    evidence: seal_bag==yes
+    min_frames: 1
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory002_worker002_00005; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: fold_garment
+      window_offset_estimate: '0-4s'
+    - event: insert_bag
+      window_offset_estimate: '4-7s'
+    - event: seal_bag
+      window_offset_estimate: '7-9s'

@@ -1,0 +1,45 @@
+sop:
+  id: f004_w006_edge_binding
+  name: 'Factory Ego: f004_w006_edge_binding'
+  domain_hint: 'First-person camera of a worker at a sewing machine attaching continuous blue edge binding to grey fabric pieces, with scissors at hand.'
+questions:
+- id: sew_binding
+  ask: 'Considering the motion across the recent frames, is the worker guiding grey fabric through the running sewing machine in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: cut_thread
+  ask: 'Considering the motion across the recent frames, is the worker cutting the thread with scissors after finishing the seam in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: swap_pieces
+  ask: 'Considering the motion across the recent frames, is the worker putting the finished piece on the pile or picking up a new grey piece in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  sew_binding:
+    evidence: sew_binding==yes
+    min_frames: 2
+  cut_thread:
+    evidence: cut_thread==yes
+    min_frames: 1
+  swap_pieces:
+    evidence: swap_pieces==yes
+    min_frames: 2
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory004_worker006_00003; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: sew_binding
+      window_offset_estimate: '0-5s'
+    - event: cut_thread
+      window_offset_estimate: '5-7s'
+    - event: swap_pieces
+      window_offset_estimate: '7-9s'

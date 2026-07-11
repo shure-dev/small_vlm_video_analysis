@@ -1,0 +1,45 @@
+sop:
+  id: f004_w004_continuous_fabric
+  name: 'Factory Ego: f004_w004_continuous_fabric'
+  domain_hint: 'First-person camera of a worker at an industrial sewing machine chaining pieces of black fabric, with piles of unsewn and finished pieces at each side.'
+questions:
+- id: sew_fabric
+  ask: 'Considering the motion across the recent frames, is the worker guiding black fabric through the running sewing machine with both hands in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: remove_piece
+  ask: 'Considering the motion across the recent frames, is the worker pulling the sewn piece away from the machine or snapping the thread chain in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: grab_new
+  ask: 'Considering the motion across the recent frames, is the worker picking up a new piece of black fabric from the pile in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  sew_fabric:
+    evidence: sew_fabric==yes
+    min_frames: 2
+  remove_piece:
+    evidence: remove_piece==yes
+    min_frames: 1
+  grab_new:
+    evidence: grab_new==yes
+    min_frames: 2
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory004_worker004_00001; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: sew_fabric
+      window_offset_estimate: '0-5s'
+    - event: remove_piece
+      window_offset_estimate: '5-7s'
+    - event: grab_new
+      window_offset_estimate: '7-9s'

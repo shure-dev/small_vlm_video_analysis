@@ -1,0 +1,45 @@
+sop:
+  id: f003_w007_wax_pattern
+  name: 'Factory Ego: f003_w007_wax_pattern'
+  domain_hint: 'First-person camera of a worker assembling wax pattern pieces at a bench with a brush pot, a metal scraping tool, and a metal assembly fixture.'
+questions:
+- id: brush_paste
+  ask: 'Considering the motion across the recent frames, is the worker brushing liquid or paste onto a small component held in the hand in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: insert_mold
+  ask: 'Considering the motion across the recent frames, is the worker inserting a component into the metal assembly fixture in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: scrape_piece
+  ask: 'Considering the motion across the recent frames, is the worker scraping or cleaning a component with the metal hand tool in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  brush_paste:
+    evidence: brush_paste==yes
+    min_frames: 2
+  insert_mold:
+    evidence: insert_mold==yes
+    min_frames: 1
+  scrape_piece:
+    evidence: scrape_piece==yes
+    min_frames: 1
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory003_worker007_00003; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: brush_paste
+      window_offset_estimate: '0-5s'
+    - event: insert_mold
+      window_offset_estimate: '5-8s'
+    - event: scrape_piece
+      window_offset_estimate: '8-9s'

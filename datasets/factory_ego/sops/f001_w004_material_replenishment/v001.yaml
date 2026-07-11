@@ -1,0 +1,45 @@
+sop:
+  id: f001_w004_material_replenishment
+  name: 'Factory Ego: f001_w004_material_replenishment'
+  domain_hint: 'First-person camera of a worker at a metal bracket assembly bench with an electric screwdriver, blue parts bins on the left, and small black fasteners.'
+questions:
+- id: scoop_parts
+  ask: 'Considering the motion across the recent frames, is the worker grabbing a handful of small black parts and dropping them into a blue bin in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: drive_fastener
+  ask: 'Considering the motion across the recent frames, is the worker holding a bracket and driving a fastener into it with the electric screwdriver in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: handle_bag
+  ask: 'Considering the motion across the recent frames, is the worker picking up or handling a small clear plastic bag of fasteners in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  scoop_parts:
+    evidence: scoop_parts==yes
+    min_frames: 2
+  drive_fastener:
+    evidence: drive_fastener==yes
+    min_frames: 2
+  handle_bag:
+    evidence: handle_bag==yes
+    min_frames: 2
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory001_worker004_00000; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: scoop_parts
+      window_offset_estimate: '0-2s'
+    - event: drive_fastener
+      window_offset_estimate: '2-6s'
+    - event: handle_bag
+      window_offset_estimate: '6-9s'

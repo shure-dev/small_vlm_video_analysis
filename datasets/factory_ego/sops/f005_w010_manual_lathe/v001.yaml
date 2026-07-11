@@ -1,0 +1,45 @@
+sop:
+  id: f005_w010_manual_lathe
+  name: 'Factory Ego: f005_w010_manual_lathe'
+  domain_hint: 'First-person camera of a worker at a manual lathe mounting parts with a washer, nut, and a large spanner wrench.'
+questions:
+- id: hand_thread
+  ask: 'Considering the motion across the recent frames, is the worker threading the washer and nut onto the lathe''s central rod by hand in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: wrench_tighten
+  ask: 'Considering the motion across the recent frames, is the worker tightening the nut with the large wrench in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: engage_spindle
+  ask: 'Considering the motion across the recent frames, is the worker turning handwheels or pulling the lever to start the lathe spindle in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  hand_thread:
+    evidence: hand_thread==yes
+    min_frames: 2
+  wrench_tighten:
+    evidence: wrench_tighten==yes
+    min_frames: 2
+  engage_spindle:
+    evidence: engage_spindle==yes
+    min_frames: 1
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory005_worker010_00000; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: hand_thread
+      window_offset_estimate: '0-5s'
+    - event: wrench_tighten
+      window_offset_estimate: '5-8s'
+    - event: engage_spindle
+      window_offset_estimate: '8-9s'

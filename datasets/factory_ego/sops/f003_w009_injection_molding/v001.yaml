@@ -1,0 +1,45 @@
+sop:
+  id: f003_w009_injection_molding
+  name: 'Factory Ego: f003_w009_injection_molding'
+  domain_hint: 'First-person camera of a worker tending an injection molding machine, breaking molded plastic parts off runners into a small box and a bulk tray.'
+questions:
+- id: extract_sprue
+  ask: 'Considering the motion across the recent frames, is the worker pulling a hot plastic sprue or molded cluster out of the molding machine in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: snap_parts
+  ask: 'Considering the motion across the recent frames, is the worker snapping plastic parts off the runner by hand into a box in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+- id: empty_box
+  ask: 'Considering the motion across the recent frames, is the worker tipping the small parts box out into the large bulk tray in the latest frame?'
+  values:
+  - 'yes'
+  - 'no'
+events:
+  extract_sprue:
+    evidence: extract_sprue==yes
+    min_frames: 2
+  snap_parts:
+    evidence: snap_parts==yes
+    min_frames: 1
+  empty_box:
+    evidence: empty_box==yes
+    min_frames: 2
+relations: []
+benchmark:
+  schema_version: '1.0'
+  version: v001
+  status: provisional
+  purpose: model_accuracy_comparison
+  provenance: 'events designed from the annotated-egocentric-10k transcription of factory003_worker009_00003; timestamps are LLM-generated estimates, not human ground truth'
+  review:
+    expected_sequence:
+    - event: extract_sprue
+      window_offset_estimate: '0-4s'
+    - event: snap_parts
+      window_offset_estimate: '2-5s'
+    - event: empty_box
+      window_offset_estimate: '5-9s'
