@@ -248,7 +248,11 @@ const DATA = "__REPLAY_DATA__";
 
 let dataset = DATA.dataset_order[0];          // 現在選択中のデータセット
 const D = () => DATA.datasets[dataset];
-let unit = D().unit_order[0];                 // 現在選択中のサンプル(unit)
+// サンプルはモデル数の多い順に並べて扱う(比較できるサンプルを上に・初期表示にする)。
+// runがunitを部分的にしか持たないため、Opusしか無いunitと全モデル揃うunitが混在する。
+const unitsByModels = () => D().unit_order.slice()
+  .sort((a, b) => D().units[b].model_order.length - D().units[a].model_order.length);
+let unit = unitsByModels()[0];                // 現在選択中のサンプル(最初は最多モデルのunit)
 const U = () => D().units[unit];
 let model = U().model_order[0];               // 現在選択中のモデル名
 const M = () => U().models[model];            // そのモデルの判定・回答結果
@@ -292,14 +296,17 @@ modelSelect.addEventListener("change", () => { model = modelSelect.value; render
 // データセット切替時: サンプル一覧を作り直してから、unitのセットアップへ。
 function setupDataset() {
   unitSelect.innerHTML = "";
-  D().unit_order.forEach(id => {
+  const order = unitsByModels();  // モデル数の多いサンプルを上に
+  order.forEach(id => {
     const opt = document.createElement("option");
     opt.value = id;
-    opt.textContent = D().units[id].label;
+    const n = D().units[id].model_order.length;
+    // モデル数を併記して、比較できるサンプル(複数モデル)がひと目で分かるようにする
+    opt.textContent = `${D().units[id].label} — ${n}モデル`;
     unitSelect.appendChild(opt);
   });
-  document.getElementById("unitPicker").hidden = D().unit_order.length < 2;
-  if (!D().unit_order.includes(unit)) unit = D().unit_order[0];
+  document.getElementById("unitPicker").hidden = order.length < 2;
+  if (!order.includes(unit)) unit = order[0];
   unitSelect.value = unit;
   setupUnit();
 }
