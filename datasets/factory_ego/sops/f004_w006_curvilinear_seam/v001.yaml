@@ -20,12 +20,15 @@ questions:
   - 'no'
 events:
   align_fabric_edges:
+    name: '生地端の位置合わせ'
     evidence: align_fabric_edges==yes
     min_frames: 3
   position_fabric_under_needle:
+    name: '針元への生地セット'
     evidence: position_fabric_under_needle==yes
     min_frames: 3
   fine_finger_work_at_needle:
+    name: '針元での指先作業'
     evidence: fine_finger_work_at_needle==yes
     min_frames: 4
 relations: []

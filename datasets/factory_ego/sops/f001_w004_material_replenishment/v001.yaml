@@ -20,12 +20,15 @@ questions:
   - 'no'
 events:
   assemble_part_with_driver:
+    name: '部品を組み立てる'
     evidence: assemble_part_with_driver==yes
     min_frames: 4
   take_parts_from_bag:
+    name: '袋から部品を取り出す'
     evidence: take_parts_from_bag==yes
     min_frames: 2
   roll_up_bag:
+    name: '袋を丸める'
     evidence: roll_up_bag==yes
     min_frames: 4
 relations: []

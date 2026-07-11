@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   adjust_coil_leads:
+    name: 'リード線の整え'
     evidence: adjust_coil_leads==yes
     min_frames: 2
   reach_machine_base:
+    name: '機械下部の操作'
     evidence: reach_machine_base==yes
     min_frames: 3
   lace_stator_cord:
+    name: 'ステータの紐掛け'
     evidence: lace_stator_cord==yes
     min_frames: 4
   press_panel_button:
+    name: '操作ボタンの押下'
     evidence: press_panel_button==yes
     min_frames: 1
 relations: []

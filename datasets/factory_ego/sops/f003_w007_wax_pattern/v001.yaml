@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   assemble_parts_by_hand:
+    name: '手での部品組付け'
     evidence: assemble_parts_by_hand==yes
     min_frames: 3
   join_parts_with_tool:
+    name: '工具による接合'
     evidence: join_parts_with_tool==yes
     min_frames: 4
   press_wax_with_fingers:
+    name: '指での押し固め'
     evidence: press_wax_with_fingers==yes
     min_frames: 2
   place_tree_on_rack:
+    name: 'ラックへの載せ替え'
     evidence: place_tree_on_rack==yes
     min_frames: 2
 relations: []

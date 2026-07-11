@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   open_heat_press:
+    name: 'プレス機を開ける'
     evidence: open_heat_press==yes
     min_frames: 2
   move_fabric_to_table:
+    name: '生地を作業台へ移す'
     evidence: move_fabric_to_table==yes
     min_frames: 2
   peel_transfer_paper:
+    name: '転写紙を剥がす'
     evidence: peel_transfer_paper==yes
     min_frames: 3
   smooth_arrange_shirt:
+    name: 'Tシャツを整える'
     evidence: smooth_arrange_shirt==yes
     min_frames: 4
 relations: []

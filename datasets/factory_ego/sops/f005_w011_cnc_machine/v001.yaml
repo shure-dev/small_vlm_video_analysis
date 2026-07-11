@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   carry_workpiece_to_machine:
+    name: '部品を持って機械へ移動'
     evidence: carry_workpiece_to_machine==yes
     min_frames: 2
   load_workpiece_into_chuck:
+    name: 'チャックへの部品取り付け'
     evidence: load_workpiece_into_chuck==yes
     min_frames: 4
   press_control_panel_button:
+    name: '操作盤ボタンの押下'
     evidence: press_control_panel_button==yes
     min_frames: 1
   arrange_parts_on_table:
+    name: '作業台での部品整理'
     evidence: arrange_parts_on_table==yes
     min_frames: 4
 relations: []

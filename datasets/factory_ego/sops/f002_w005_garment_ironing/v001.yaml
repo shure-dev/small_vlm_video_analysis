@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   place_folding_board:
+    name: '折り畳み板を置く'
     evidence: place_folding_board==yes
     min_frames: 4
   fold_shirt_around_board:
+    name: 'シャツを板に沿って畳む'
     evidence: fold_shirt_around_board==yes
     min_frames: 4
   flip_and_neaten_folded_shirt:
+    name: '表に返して形を整える'
     evidence: flip_and_neaten_folded_shirt==yes
     min_frames: 3
   stack_folded_shirt:
+    name: '完成品の山に重ねる'
     evidence: stack_folded_shirt==yes
     min_frames: 2
 relations: []

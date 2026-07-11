@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   bundle_scrap:
+    name: 'スクラップをまとめる'
     evidence: bundle_scrap==yes
     min_frames: 4
   walk_to_next_station:
+    name: '歩いて移動する'
     evidence: walk_to_next_station==yes
     min_frames: 3
   pick_up_metal_sheets:
+    name: '金属の板を取る'
     evidence: pick_up_metal_sheets==yes
     min_frames: 2
   gather_metal_sheets:
+    name: '金属の板をまとめる'
     evidence: gather_metal_sheets==yes
     min_frames: 2
 relations: []

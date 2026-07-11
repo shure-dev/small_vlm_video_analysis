@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   lift_pattern_plate:
+    name: '型板の持ち上げ'
     evidence: lift_pattern_plate==yes
     min_frames: 4
   carry_sand_mold:
+    name: '砂型の運搬'
     evidence: carry_sand_mold==yes
     min_frames: 2
   walk_between_benches:
+    name: '作業台間の移動'
     evidence: walk_between_benches==yes
     min_frames: 3
   pick_parts_from_box:
+    name: '木箱からの部品取り出し'
     evidence: pick_parts_from_box==yes
     min_frames: 2
 relations: []

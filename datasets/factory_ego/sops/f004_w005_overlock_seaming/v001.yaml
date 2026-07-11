@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   pick_piece_from_pile:
+    name: '布の山から布を取り上げる'
     evidence: pick_piece_from_pile==yes
     min_frames: 2
   unfold_and_orient_piece:
+    name: '布を広げて向きを整える'
     evidence: unfold_and_orient_piece==yes
     min_frames: 3
   check_seam_edge_by_hand:
+    name: '布端の縫い目を確認する'
     evidence: check_seam_edge_by_hand==yes
     min_frames: 4
   set_piece_under_needle:
+    name: '布を針元に合わせて置く'
     evidence: set_piece_under_needle==yes
     min_frames: 4
 relations: []

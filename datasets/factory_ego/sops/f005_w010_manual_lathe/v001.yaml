@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   tighten_workpiece_nut:
+    name: '工作物のナット締め付け'
     evidence: tighten_workpiece_nut==yes
     min_frames: 4
   place_wrench_on_carriage:
+    name: 'スパナを往復台に置く'
     evidence: place_wrench_on_carriage==yes
     min_frames: 2
   start_spindle:
+    name: '主軸の起動'
     evidence: start_spindle==yes
     min_frames: 2
   run_spindle:
+    name: '回転運転と確認'
     evidence: run_spindle==yes
     min_frames: 4
 relations: []

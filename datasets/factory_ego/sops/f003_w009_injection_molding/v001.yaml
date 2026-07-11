@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   remove_molded_parts:
+    name: '成形品の取り出し'
     evidence: remove_molded_parts==yes
     min_frames: 3
   place_parts_on_table:
+    name: '成形品を台に置く'
     evidence: place_parts_on_table==yes
     min_frames: 2
   walk_to_next_position:
+    name: '立ち位置の移動'
     evidence: walk_to_next_position==yes
     min_frames: 3
   set_inserts_into_mold:
+    name: '金属部品の金型セット'
     evidence: set_inserts_into_mold==yes
     min_frames: 4
 relations: []

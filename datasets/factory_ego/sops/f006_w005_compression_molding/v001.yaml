@@ -20,12 +20,15 @@ questions:
   - 'no'
 events:
   place_mold_on_press:
+    name: '金型のセット'
     evidence: place_mold_on_press==yes
     min_frames: 4
   operate_control_panel:
+    name: '操作盤の操作'
     evidence: operate_control_panel==yes
     min_frames: 2
   stand_by_press:
+    name: '操作盤前での待機・確認'
     evidence: stand_by_press==yes
     min_frames: 3
 relations: []

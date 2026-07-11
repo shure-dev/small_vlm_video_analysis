@@ -20,12 +20,15 @@ questions:
   - 'no'
 events:
   pick_parts_from_pile:
+    name: '山から筒状部品を拾う'
     evidence: pick_parts_from_pile==yes
     min_frames: 3
   put_parts_into_box:
+    name: '筒状部品を鉄箱に入れる'
     evidence: put_parts_into_box==yes
     min_frames: 2
   reposition_parts_box:
+    name: '鉄箱の位置を調整する'
     evidence: reposition_parts_box==yes
     min_frames: 2
 relations: []

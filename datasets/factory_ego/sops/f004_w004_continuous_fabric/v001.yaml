@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   stow_black_fabric:
+    name: '黒生地を広げて置き場へ移す'
     evidence: stow_black_fabric==yes
     min_frames: 4
   bring_garment_to_machine:
+    name: '衣類をミシン台へ引き寄せる'
     evidence: bring_garment_to_machine==yes
     min_frames: 4
   align_garment_edge:
+    name: '衣類の縁を両手で揃える'
     evidence: align_garment_edge==yes
     min_frames: 3
   set_under_presser_foot:
+    name: '押さえ金の下に生地をセットする'
     evidence: set_under_presser_foot==yes
     min_frames: 3
 relations: []

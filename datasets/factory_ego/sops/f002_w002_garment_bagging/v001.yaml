@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   pick_garment_from_stack:
+    name: 'スタックから服を取る'
     evidence: pick_garment_from_stack==yes
     min_frames: 2
   insert_garment_into_bag:
+    name: '服を袋に入れる'
     evidence: insert_garment_into_bag==yes
     min_frames: 3
   seal_bag_flap:
+    name: '袋の口を閉じる'
     evidence: seal_bag_flap==yes
     min_frames: 4
   place_package_right:
+    name: '完成品を右側に置く'
     evidence: place_package_right==yes
     min_frames: 2
 relations: []

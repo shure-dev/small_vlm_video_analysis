@@ -25,15 +25,19 @@ questions:
   - 'no'
 events:
   spread_garment_on_table:
+    name: '衣類を台に広げる'
     evidence: spread_garment_on_table==yes
     min_frames: 2
   smooth_and_align_garment:
+    name: '衣類をならして整える'
     evidence: smooth_and_align_garment==yes
     min_frames: 2
   fold_garment:
+    name: '衣類を畳む'
     evidence: fold_garment==yes
     min_frames: 3
   take_hanger:
+    name: 'ハンガーを手に取る'
     evidence: take_hanger==yes
     min_frames: 2
 relations: []
