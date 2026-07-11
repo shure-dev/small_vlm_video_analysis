@@ -2,7 +2,9 @@
 
 [日本語](README.md) | [Documentation](docs/README.md)
 
-An experimental framework for checking whether a work video follows a standard operating procedure (SOP), using **local VLM observations** and **deterministic rules**.
+**Edge AI that flags procedure mistakes in work videos — skipped steps, wrong order — without footage ever leaving the site.**
+
+An experimental framework for checking whether a work video follows a standard operating procedure (SOP). The local VLM only answers per-frame yes / no questions; **deterministic rules** make the pass / fail judgement.
 
 - Produces `PASS` / `FAIL` with violation reasons from a video and an SOP
 - Evaluates observation quality separately from judgement quality using human ground truth

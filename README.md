@@ -2,6 +2,8 @@
 
 [English](README.en.md) | [ドキュメント](docs/README.md)
 
+**Edge AI that flags procedure mistakes in work videos — skipped steps, wrong order — without footage ever leaving the site.**
+
 作業動画が手順書（SOP）に沿っているかを判定・評価する実験フレームワークです。**ローカルVLMは各フレームを見て質問に yes / no で答えるだけ**で、手順に沿っているかの判定は**決定論的なルール**が行います。
 
 - 動画とSOPから、`PASS` / `FAIL` と違反理由を出力
