@@ -1,0 +1,2 @@
+{"dataset": "factory_ego", "formal_accuracy": null, "kind": "prediction", "model": "Claude Fable 5", "role": "large_model_reference_prediction", "run_id": "20260711-factory_ego-fable5-reference-r1", "split": "development-v001", "unit_count": 20}
+{"dataset": "factory_ego", "formal_accuracy": null, "kind": "prediction", "model": "Claude Opus 4.8", "role": "large_model_reference_prediction", "run_id": "20260711-factory_ego-opus48-reference-r1", "split": "development-v001", "unit_count": 20}
