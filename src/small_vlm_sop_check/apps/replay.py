@@ -118,11 +118,17 @@ def build_model_data(sop_def: dict, raw_log: list, n_frames: int) -> dict:
                      "answers": _confidence_to_answers(r.get("confidence", {}))} for r in log]
     result = judge(sop_def, judge_frames)
 
+    asks = {q["id"]: q["ask"] for q in sop_def.get("questions", [])}
     events = {}
     for name, spec in sop_def["events"].items():
         run = result.events.get(name)
+        evidence = spec if isinstance(spec, str) else spec["evidence"]
+        question_id = evidence.split("==")[0].strip()
         events[name] = {
-            "evidence": spec if isinstance(spec, str) else spec["evidence"],
+            "evidence": evidence,
+            # 日本語ラベル(SOPのevent.name)と対応する質問文。英語idの代わりに表示に使う
+            "label": name if isinstance(spec, str) else spec.get("name", name),
+            "question": asks.get(question_id, ""),
             "start_idx": run.start_idx if run else None,
             "end_idx": run.end_idx if run else None,
             "t": run.t if run else None,

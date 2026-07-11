@@ -132,33 +132,6 @@
     margin: 0 0 8px;
   }
   .left h2 { margin-top: 18px; }
-  #questions {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 22px;
-  }
-  .qrow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-  }
-  .qask { flex: 1; font-size: 13px; color: #333; }
-  .pill {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-  .pill.yes { background: var(--ok-bg); color: var(--ok); }
-  .pill.no { background: var(--no-bg); color: var(--no); }
-  .pill.unclear { background: var(--unclear-bg); color: var(--unclear); }
-  .prob { font-size: 11px; color: #999; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
 
   #events { display: flex; flex-direction: column; gap: 10px; }
   .erow {
@@ -179,7 +152,6 @@
   .estatus.ok { color: var(--ok); }
   .estatus.missing { color: var(--bad); }
   .estatus.correctly-absent { color: #888; }
-  .evidence { font-size: 11px; color: #999; font-family: "SF Mono", Menlo, monospace; }
   .timeline {
     position: relative;
     height: 10px;
@@ -252,13 +224,10 @@
         <input type="range" id="scrubber" min="0" value="0" step="1">
         <span id="timeLabel"></span>
       </div>
-      <details open>
-        <summary>このフレームでVLMが実際に返したJSON(生出力)</summary>
+      <details>
+        <summary>このフレームでモデルが返した生出力(デバッグ用)</summary>
         <pre id="rawOutput"></pre>
       </details>
-
-      <h2>質問への回答(このフレーム時点)</h2>
-      <div id="questions"></div>
     </section>
 
     <section class="right">
@@ -319,12 +288,6 @@ unitSelect.addEventListener("change", () => {
 // モデル切替プルダウン。選択肢はunitごとに作り直す(runがunitを部分的にしか持たない場合がある)。
 const modelSelect = document.getElementById("modelSelect");
 modelSelect.addEventListener("change", () => { model = modelSelect.value; renderHeader(); render(); });
-
-function pillClass(v) {
-  if (v === "yes") return "pill yes";
-  if (v === "unclear") return "pill unclear";
-  return "pill no";
-}
 
 // データセット切替時: サンプル一覧を作り直してから、unitのセットアップへ。
 function setupDataset() {
@@ -392,23 +355,6 @@ function renderHeader() {
   });
 }
 
-function renderQuestions(frame) {
-  const box = document.getElementById("questions");
-  box.innerHTML = "";
-  U().questions.forEach(q => {
-    const val = frame.answers[q.id] ?? "?";
-    const prob = frame.probs[q.id] ? frame.probs[q.id][val] : null;
-    const row = document.createElement("div");
-    row.className = "qrow";
-    row.innerHTML = `
-      <span class="qask">${q.ask}</span>
-      <span class="prob">${prob != null ? Math.round(prob * 100) + "%" : ""}</span>
-      <span class="${pillClass(val)}">${val}</span>
-    `;
-    box.appendChild(row);
-  });
-}
-
 // 正解区間(あれば)。tIoU = フレームidx集合同士の temporal IoU。
 // 検出側は実際に一致したフレーム(ev.idxs)で数え、max_gapで橋渡しした隙間は含めない。
 function tiou(gtSpan, ev) {
@@ -468,12 +414,12 @@ function renderEvents() {
 
     const row = document.createElement("div");
     row.className = "erow" + (active ? " active" : "");
+    const label = ev.label || name;
     row.innerHTML = `
       <div class="ehead">
-        <span class="ename">${name}</span>
+        <span class="ename">${label}</span>
         <span class="estatus ${statusClass}">${statusText}</span>
       </div>
-      <div class="evidence">${ev.evidence}</div>
       <div class="timeline"></div>
     `;
     const tl = row.querySelector(".timeline");
@@ -509,7 +455,6 @@ function render() {
     `t=${U().times[idx].toFixed(1)}s  (${idx + 1}/${U().n_frames})`;
   document.getElementById("rawOutput").textContent = frame.raw;
   scrubber.value = idx;
-  renderQuestions(frame);
   renderEvents();
 }
 
