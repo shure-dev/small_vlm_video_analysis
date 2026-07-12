@@ -67,13 +67,13 @@
       "frame_count": 40,
       "frames_manifest_sha256": "987c0307e35bcb1e42ffe6a3965392f1fe16a78c5914c4114302dcc5533ac513",
       "meta_sha256": "49935df7e9f02ce576e534b331f3e515fdf5f9224ebe5a38dce50c316be5ce57",
-      "sop_sha256": "f88bbad8e09f183475c109f2e8d43243fbb41b5cdebd41ec56944a6806192ee8"
+      "sop_sha256": "adcff8f092a96c5cda29636d5b96d5506fa615965e71fce9ad28f48f3f0975e9"
     },
     "f004_w005_heat_press": {
       "frame_count": 40,
       "frames_manifest_sha256": "b20f8e12af0333289df308570f34cc3b55a147e47b9fafdd410a57cdffbc527c",
       "meta_sha256": "57a84006689c5ca9a214bf5239faac45a89aa86809b2c6f02f81060fdd8e4f8a",
-      "sop_sha256": "6c5a4b9dcad645eb5d97614a1b366304b1dbb13cbe1510d3c1bfde0b28cb1d67"
+      "sop_sha256": "c945762ca2967f93ea47a6239cdacf30647443d06dcda470255b0f323bff98cd"
     },
     "f004_w005_overlock_seaming": {
       "frame_count": 40,
