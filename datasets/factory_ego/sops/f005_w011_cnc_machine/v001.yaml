@@ -31,7 +31,6 @@ events:
     name: '扉を閉める'
     evidence: close_machine_door==yes
     min_frames: 1
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

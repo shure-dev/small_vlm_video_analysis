@@ -40,7 +40,7 @@ python3 tools/benchmark/reference_tiou.py \
   --reference <reference run_id> --json out/tiou.json
 ```
 
-各runの回答から決定論的judgeでイベント区間を導き、reference runとの区間tIoUを測る。比較は共通unit・共通フレームidxに制限し、mean tIoUは両run検出ペアのみの平均（`core.evaluate` と同じ流儀）。referenceは人手GTではないため精度ではなく、[評価ポリシー](../../docs/benchmark/evaluation.md)の予備比較（モデル間一致・境界差）に当たる。VLM不要。
+各runの回答から決定論的ルールでイベント区間を導き、reference runとの区間tIoUを測る。比較は共通unit・共通フレームidxに制限し、mean tIoUは両run検出ペアのみの平均（`core.evaluate` と同じ流儀）。referenceは人手GTではないため精度ではなく、[評価ポリシー](../../docs/benchmark/evaluation.md)の予備比較（モデル間一致・境界差）に当たる。VLM不要。
 
 ## Validate
 

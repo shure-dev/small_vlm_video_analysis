@@ -45,17 +45,6 @@
     font-family: inherit;
     max-width: 240px;
   }
-  .badge {
-    font-size: 15px;
-    font-weight: 700;
-    padding: 6px 18px;
-    border-radius: 999px;
-    letter-spacing: 0.04em;
-  }
-  .badge.pass { background: var(--ok-bg); color: var(--ok); }
-  .badge.fail { background: var(--bad-bg); color: var(--bad); }
-  #coverage { font-size: 13px; color: #666; white-space: nowrap; }
-
   main {
     display: flex;
     gap: 20px;
@@ -182,26 +171,6 @@
     background: #1c1c1c;
   }
 
-  #violations {
-    margin-top: 8px;
-    font-size: 13px;
-    color: var(--bad);
-  }
-  #violations li { margin-bottom: 4px; }
-
-  footer {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 20px 30px;
-  }
-  footer h3 {
-    font-size: 13px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  footer ul { font-size: 13px; color: #444; padding-left: 20px; }
-  footer code { font-family: "SF Mono", Menlo, monospace; font-size: 12px; background: #fff; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); }
 </style>
 </head>
 <body>
@@ -210,8 +179,6 @@
     <label id="datasetPicker" hidden>データセット<select id="datasetSelect"></select></label>
     <label id="unitPicker" hidden>サンプル<select id="unitSelect"></select></label>
     <label id="modelPicker">モデル<select id="modelSelect"></select></label>
-    <span id="coverage"></span>
-    <span id="verdictBadge" class="badge"></span>
   </header>
 
   <main>
@@ -234,14 +201,8 @@
       <h2>イベント検出<span id="gtLegend" class="legend" hidden>
         <span class="sw-det">■</span> 検出 / <span class="sw-gt">□</span> 正解(人手アノテーション)</span></h2>
       <div id="events"></div>
-      <ul id="violations"></ul>
     </section>
   </main>
-
-  <footer>
-    <h3>relations(このSOPが要求する関係)</h3>
-    <ul id="relations"></ul>
-  </footer>
 
 <script>
 const DATA = "__REPLAY_DATA__";
@@ -255,9 +216,8 @@ const unitsByModels = () => D().unit_order.slice()
 let unit = unitsByModels()[0];                // 現在選択中のサンプル(最初は最多モデルのunit)
 const U = () => D().units[unit];
 let model = U().model_order[0];               // 現在選択中のモデル名
-const M = () => U().models[model];            // そのモデルの判定・回答結果
+const M = () => U().models[model];            // そのモデルの検出・回答結果
 
-let notOnly = new Set();   // unitごとにsetupUnit()で作り直す
 let GT = null;
 let idx = 0;
 let playing = false;
@@ -291,7 +251,7 @@ unitSelect.addEventListener("change", () => {
 
 // モデル切替プルダウン。選択肢はunitごとに作り直す(runがunitを部分的にしか持たない場合がある)。
 const modelSelect = document.getElementById("modelSelect");
-modelSelect.addEventListener("change", () => { model = modelSelect.value; renderHeader(); render(); });
+modelSelect.addEventListener("change", () => { model = modelSelect.value; render(); });
 
 // データセット切替時: サンプル一覧を作り直してから、unitのセットアップへ。
 function setupDataset() {
@@ -311,15 +271,9 @@ function setupDataset() {
   setupUnit();
 }
 
-// unit切替時に作り直すもの: タイトル・モデル一覧・relations・正解区間・スクラバー範囲。
+// unit切替時に作り直すもの: タイトル・モデル一覧・正解区間・スクラバー範囲。
 function setupUnit() {
   document.getElementById("sopName").textContent = U().sop.name;
-  notOnly = new Set(
-    U().relations
-      .map(r => /^\s*not\s+(\w+)\s*$/.exec(r))
-      .filter(Boolean)
-      .map(m => m[1])
-  );
   GT = U().gt;
   document.getElementById("gtLegend").hidden = !GT;
 
@@ -327,39 +281,14 @@ function setupUnit() {
   U().model_order.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
-    opt.textContent = name;   // 合否はヘッダのverdictBadgeに出す(一覧に❌を並べると驚くため付けない)
+    opt.textContent = name;
     modelSelect.appendChild(opt);
   });
   if (!U().model_order.includes(model)) model = U().model_order[0];
   modelSelect.value = model;
 
-  const relUl = document.getElementById("relations");
-  relUl.innerHTML = "";
-  U().relations.forEach(r => {
-    const li = document.createElement("li");
-    li.innerHTML = `<code>${r}</code>`;
-    relUl.appendChild(li);
-  });
-
   scrubber.max = U().n_frames - 1;
-  renderHeader();
   render();
-}
-
-// モデル依存のヘッダ(coverage/判定/違反)を選択モデルに合わせて描き直す。
-function renderHeader() {
-  document.getElementById("coverage").textContent = `coverage ${Math.round(M().coverage * 100)}%`;
-  const badge = document.getElementById("verdictBadge");
-  badge.textContent = M().verdict === "PASS" ? "✅ PASS" : "❌ FAIL";
-  badge.className = "badge " + (M().verdict === "PASS" ? "pass" : "fail");
-
-  const violUl = document.getElementById("violations");
-  violUl.innerHTML = "";
-  M().violations.forEach(v => {
-    const li = document.createElement("li");
-    li.textContent = "違反: " + v;
-    violUl.appendChild(li);
-  });
 }
 
 // 正解区間(あれば)。tIoU = フレームidx集合同士の temporal IoU。
@@ -379,23 +308,16 @@ function renderEvents() {
   for (const [name, ev] of Object.entries(M().events)) {
     const spans = ev.spans || [];               // 全出現区間(同じ動作の複数回を各回別々に)
     const detected = spans.length > 0;
-    const isNotOnly = notOnly.has(name);
     const active = spans.some(s => idx >= s.start && idx <= s.end);
     const gtSpan = GT ? GT[name] : undefined;   // undefined=未注釈 / null=起きていない
     const spanText = spans.map(s => s.start === s.end ? `${s.start}` : `${s.start}-${s.end}`).join(", ");
 
     let statusText, statusClass;
-    if (detected && isNotOnly) {
-      statusText = `検出された(本来は起きてはいけない) f${spanText}`;
-      statusClass = "missing";
-    } else if (detected) {
+    if (detected) {
       statusText = spans.length > 1
         ? `検出 ${spans.length}回 (f${spanText})`
         : `検出 (f${spanText})`;
       statusClass = "ok";
-    } else if (isNotOnly) {
-      statusText = "未検出(これが正しい)";
-      statusClass = "correctly-absent";
     } else {
       statusText = "未検出";
       statusClass = "missing";
@@ -405,9 +327,12 @@ function renderEvents() {
     } else if (gtSpan && !detected) {
       statusText = `見逃し(正解: frame ${gtSpan.start_idx}-${gtSpan.end_idx})`;
       statusClass = "missing";
-    } else if (gtSpan === null && detected && !isNotOnly) {
+    } else if (gtSpan === null && detected) {
       statusText += " / 誤検出(正解: 起きていない)";
       statusClass = "missing";
+    } else if (gtSpan === null && !detected) {
+      statusText = "未検出(正解: 起きていない)";
+      statusClass = "correctly-absent";
     }
 
     const row = document.createElement("div");

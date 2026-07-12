@@ -2,7 +2,7 @@
 ローカル小型VLM(Qwen3-VL, mlx_vlm)にフレームごとの質問へ回答させる（Phase 1）。
 
 各質問への回答だけでなく、生成トークンのlogitから実測した信頼度(自己申告ではない)も
-一緒に返す。これによりPhase 2(judge)側で「低信頼な回答に頼った判定か」を
+一緒に返す。これによりPhase 2(区間検出)側で「低信頼な回答に頼った検出か」を
 可視化できる(experiments/sop_step_detect/confidence_judge/ での実験で技術検証済み)。
 
 ドメイン固有の知識(ガスコンロの点検作業など)は一切持たない。
@@ -251,5 +251,5 @@ class TransformersObserver:
 
 
 def confidence_to_answers(confidence: dict[str, dict]) -> dict[str, str]:
-    """judge が期待する {question_id: value} 形式に変換する(argmaxだけを取り出す)。"""
+    """detect_events が期待する {question_id: value} 形式に変換する(argmaxだけを取り出す)。"""
     return {question_id: c["argmax"] for question_id, c in confidence.items()}

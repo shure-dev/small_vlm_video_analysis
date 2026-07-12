@@ -37,7 +37,6 @@ events:
     evidence: knock_parts_off_casting_q==yes
     min_frames: 4
     occurrence: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

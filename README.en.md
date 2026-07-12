@@ -7,46 +7,51 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 ![Status: experimental](https://img.shields.io/badge/status-experimental-orange)
 
-**Small, offline VLMs for industrial egocentric video — step-by-step SOP compliance, frame by frame, toward real-time streaming.**
+**Small, offline VLMs for industrial egocentric video — detecting SOP step intervals, frame by frame, toward real-time streaming.**
 
-An experimental framework that checks whether a factory worker's first-person (egocentric) video follows a standard operating procedure (SOP), using only small local VLMs.
+An experimental framework that detects when each step of a standard operating procedure (SOP) happens (event intervals) in a factory worker's first-person (egocentric) video, using only small local VLMs.
 
 <p align="center">
-  <img src="docs/assets/replay_demo.gif" alt="Replay viewer showing VLM answers, detected events, ground-truth spans, and the final verdict" width="640">
+  <img src="docs/assets/replay_demo.gif" alt="Replay viewer showing VLM answers, detected events, and ground-truth spans" width="640">
 </p>
 
 ## Why this exists
 
 - 🏭 **Industrial focus** — video analysis specialized for factory and manufacturing work, not general video understanding such as movies, game streams, or kitchen egocentric datasets (e.g. Ego4D)
-- ✅ **Procedure first** — instead of captioning or summarizing the video, answer "did the worker perform this SOP step?" at **yes / no granularity** and flag skipped or out-of-order steps. The local VLM only answers per-frame questions; deterministic rules make the pass / fail judgement
+- ✅ **Procedure first** — instead of captioning or summarizing the video, answer "did the worker perform this SOP step?" at **yes / no granularity** and detect the interval where each step happens. The local VLM only answers per-frame questions; deterministic rules derive the intervals
 - 🔒 **Fully offline** — footage never leaves the site; everything runs on a small local VLM on Apple Silicon
 - ⏱️ **Streaming-oriented** — frames are processed causally from the front rather than feeding the whole video at once, aiming at real-time streaming
 - 🎓 **Toward training** — beyond evaluation: build human ground-truth data and use it to train and improve small industrial VLMs
 
 ## What it does
 
-- Produces `PASS` / `FAIL` with violation reasons from a video and an SOP
-- Evaluates answer quality separately from judgement quality using human ground truth
+- Detects the interval of each SOP step from a video and an SOP
+- Evaluates event intervals and per-frame answers against human ground truth
 - Provides CLI tools for annotation, inference, evaluation, and replay
 - Includes results from 15 local VLMs tested under the same demo conditions
 
 ## Quick start
 
-Python 3.10 or newer is required. The first example runs the deterministic rule engine against the bundled observation log, so no VLM dependency is needed.
+Python 3.10 or newer is required. The first example runs the deterministic rule engine against the bundled answer log, so no VLM dependency is needed.
 
 ```bash
 python3 -m pip install -e .
 
-sop-check judge \
-  --sop datasets/konro_inspection/sops/konro_inspection/correct.yaml \
+sop-check detect \
+  --sop datasets/konro_inspection/sops/konro_inspection/konro_inspection.yaml \
   --answer-log datasets/konro_inspection/fixtures/reference_outputs/answer_log.json
 ```
 
 Expected result:
 
 ```text
->>> 総合判定: PASS <<<
-[正解照合] verdict ✓  =>  箇所特定 ✓
+event          status          t(s)  span(idx)
+ignite         detected         3.0  1-5
+flame_seen     detected         3.0  3-3
+...
+gloves_worn    NOT_DETECTED       -
+
+検出: 6/7 イベント
 ```
 
 Generate a self-contained replay viewer with:
@@ -57,18 +62,17 @@ sop-replay
 
 ## Design
 
-The VLM only answers visual questions for each frame. A deterministic rule engine handles ordering, overlap, and prohibited actions.
+The VLM only answers visual questions for each frame. A deterministic rule engine derives event intervals from the answer sequence (minimum duration, bridging short noise, assigning the n-th occurrence).
 
 ```mermaid
 flowchart LR
     A[Video] --> B[Frame extraction]
-    B --> C[VLM observation<br/>yes / no per question]
-    C --> D[Event spans]
-    D --> E[Deterministic rules]
-    E --> F[PASS / FAIL<br/>violation reasons]
+    B --> C[VLM answers<br/>yes / no per question]
+    C --> D[Deterministic rules<br/>detect event intervals]
+    D --> E[Evaluate against human spans<br/>tIoU / frame agreement]
 ```
 
-This separation makes it possible to distinguish visual errors from rule errors, rerun an SOP against a saved observation log, and keep human facts separate from model predictions. See [ADR 0001](docs/decisions/0001-separate-facts-predictions-evaluations.md) for the rationale.
+This separation makes it possible to distinguish visual errors from rule errors, rerun event detection against a saved answer log, and keep human facts separate from model predictions. See [ADR 0001](docs/decisions/0001-separate-facts-predictions-evaluations.md) for the rationale.
 
 ## Run with a local VLM
 
@@ -78,7 +82,7 @@ The reference MLX backend requires macOS on Apple Silicon.
 python3 -m pip install -e ".[vlm]"
 
 sop-check run \
-  --sop datasets/konro_inspection/sops/konro_inspection/correct.yaml \
+  --sop datasets/konro_inspection/sops/konro_inspection/konro_inspection.yaml \
   --video datasets/konro_inspection/units/konro_inspection/media/konro_inspection.mp4 \
   --model qwen3-4b \
   --out-dir out/qwen3-4b
@@ -88,27 +92,22 @@ The model is downloaded on first use. Run `sop-check models` to list registered 
 
 ## Evaluation
 
-The project evaluates two independent questions:
-
-| Axis | Question | Reference |
-|---|---|---|
-| Observation | Did the VLM see what actually happened? | Human `ground_truth.json` |
-| Judgement | Did it return the expected verdict and reason? | SOP `expect` |
+Detected event intervals are compared against human `ground_truth.json` (detected / missed / false detection / correctly absent).
 
 ```bash
 sop-check eval \
-  --sop datasets/konro_inspection/sops/konro_inspection/correct.yaml \
+  --sop datasets/konro_inspection/sops/konro_inspection/konro_inspection.yaml \
   --ground-truth datasets/konro_inspection/annotations/human-v001/konro_inspection.json \
   --answer-log datasets/konro_inspection/fixtures/reference_outputs/answer_log.json
 ```
 
-Observation metrics include relation agreement, mean temporal IoU, and per-question frame agreement.
+Metrics include mean temporal IoU and per-question frame agreement.
 
 ## Bundled benchmarks
 
 ### Konro Inspection
 
-A complete demo with one 16-frame gas-stove inspection video, three SOP conditions, and human ground truth. Among the 15 tested models, Qwen3-VL-4B was the only model to achieve both 3/3 judgement correctness and 6/6 relation agreement. Its frame agreement was 96% and mean tIoU was 0.80.
+A complete demo with one 16-frame gas-stove inspection video and human ground truth. Among the 15 tested models, Qwen3-VL-4B was the only model that closely reproduced the human spans (mean tIoU 0.80, frame agreement 96%).
 
 This is a result for one short demo video, not an estimate of general factory performance. See the [full benchmark tables and reproduction commands](docs/benchmark/konro-results.md).
 

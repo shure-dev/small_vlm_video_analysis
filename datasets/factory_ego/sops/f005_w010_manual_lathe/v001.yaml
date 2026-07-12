@@ -49,7 +49,6 @@ events:
     name: '刃物を送って削る'
     evidence: feed_cutting_tool==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

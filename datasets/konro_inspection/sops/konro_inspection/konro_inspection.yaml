@@ -1,5 +1,5 @@
 # 実例: ガスコンロ始業前点検（5工程）。
-# グラウンドトゥルースは ../../procedure.md。
+# 手順の記述は ../../units/konro_inspection/procedure.md。
 #
 # 設計上のポイント（実験(confidence_judge/)で確立した知見をそのまま反映）:
 #   - min_frames の既定値は1(=1フレームでも検出とみなす)。
@@ -10,21 +10,16 @@
 #     正しい検出まで弾いてしまうことを実験で確認したため、この向きにした。
 #   - point1/point2 は同じ質問(pointing==yes)を参照するが、occurrenceで
 #     「1回目」「2回目」を宣言順に依存せず明示する
-#   - point2(グリル後の指差し確認)と battery(電池確認)は、実際の映像では
-#     「電池を指差して確認」という1つの動作として同時に起きていた
-#     (procedure.md の備考が予告していた曖昧点)。relations で overlaps を使い、
-#     「同時に起きてよい」ことを明示的に許容する
-#   - gloves(手袋)は本手順に存在しないので、"not gloves_worn" で
-#     「一度も検出されてはいけない」安全条件として宣言する
+#   - gloves(手袋)は本手順に存在しない動作。起きない動作を誤検出しないかを
+#     人手GT(null注釈)との突き合わせで確認するため、質問・イベントとして残す
 schema_version: "0.1"
 
 sop:
   id: konro_inspection
-  name: コンロ始業前点検（正しい手順）
+  name: コンロ始業前点検
   domain_hint: "これはガスコンロの点検作業を上から撮った動画の1フレームです。コンロ手前には左右2つのつまみが並び、下部の引き出しは中央〜左寄りが魚焼きグリル、その右隣に電池ケースの小さな引き出しがある"
 
 defaults:
-  order_tolerance_s: 1.0
   min_frames: 1
   max_gap_frames: 2
 
@@ -74,16 +69,3 @@ events:
     evidence: "battery==yes"
   gloves_worn:
     evidence: "gloves==yes"
-
-# --- Phase 2: それらの関係 ---
-relations:
-  - flame_seen overlaps ignite      # 点火した瞬間、炎が見えるはず
-  - ignite before point1
-  - point1 before grill_open
-  - grill_open before point2
-  - point2 overlaps battery_check   # 電池を指差して確認 = 同時に起きてよい
-  - not gloves_worn                 # 手袋は一度も検出されてはいけない(安全条件)
-
-# --- Phase 0: この動画に対する期待判定(正解) ---
-expect:
-  verdict: PASS

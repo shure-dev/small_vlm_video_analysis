@@ -40,7 +40,6 @@ events:
     name: '金属部品の金型セット'
     evidence: set_inserts_into_mold==yes
     min_frames: 4
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

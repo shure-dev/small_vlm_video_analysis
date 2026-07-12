@@ -31,7 +31,6 @@ events:
     name: '針元での指先作業'
     evidence: fine_finger_work_at_needle==yes
     min_frames: 4
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

@@ -40,7 +40,6 @@ events:
     name: '裾をめくって糸切り'
     evidence: trim_threads_hem==yes
     min_frames: 3
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

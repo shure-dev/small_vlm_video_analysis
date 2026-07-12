@@ -40,7 +40,6 @@ events:
     name: '木箱からの部品取り出し'
     evidence: pick_parts_from_box==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

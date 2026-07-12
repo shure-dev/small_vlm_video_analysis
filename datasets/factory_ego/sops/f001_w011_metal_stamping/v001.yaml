@@ -40,7 +40,6 @@ events:
     name: '金属の板をまとめる'
     evidence: gather_metal_sheets==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

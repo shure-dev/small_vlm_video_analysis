@@ -15,12 +15,12 @@ Factory Egoのgated媒体を取得済みのローカル環境では、`python3 t
 ## Konro demo
 
 ```bash
-sop-check judge \
-  --sop datasets/konro_inspection/sops/konro_inspection/correct.yaml \
+sop-check detect \
+  --sop datasets/konro_inspection/sops/konro_inspection/konro_inspection.yaml \
   --answer-log datasets/konro_inspection/fixtures/reference_outputs/answer_log.json
 
 sop-check eval \
-  --sop datasets/konro_inspection/sops/konro_inspection/correct.yaml \
+  --sop datasets/konro_inspection/sops/konro_inspection/konro_inspection.yaml \
   --ground-truth datasets/konro_inspection/annotations/human-v001/konro_inspection.json \
   --answer-log datasets/konro_inspection/fixtures/reference_outputs/answer_log.json
 ```

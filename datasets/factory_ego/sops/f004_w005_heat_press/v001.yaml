@@ -40,7 +40,6 @@ events:
     name: 'Tシャツを整える'
     evidence: smooth_arrange_shirt==yes
     min_frames: 4
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

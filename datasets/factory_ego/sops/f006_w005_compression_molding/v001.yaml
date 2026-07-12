@@ -31,7 +31,6 @@ events:
     name: '操作盤前での待機・確認'
     evidence: stand_by_press==yes
     min_frames: 3
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

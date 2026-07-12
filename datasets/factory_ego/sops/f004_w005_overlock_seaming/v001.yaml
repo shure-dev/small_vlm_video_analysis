@@ -40,7 +40,6 @@ events:
     name: '布を針元に合わせて置く'
     evidence: set_piece_under_needle==yes
     min_frames: 4
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

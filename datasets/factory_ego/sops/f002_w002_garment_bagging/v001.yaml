@@ -40,7 +40,6 @@ events:
     name: '完成品を右側に置く'
     evidence: place_package_right==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

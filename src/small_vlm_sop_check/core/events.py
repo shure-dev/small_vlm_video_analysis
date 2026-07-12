@@ -1,19 +1,12 @@
-"""宣言的SOP定義 × 回答ログ → 遵守判定（決定論的・ルールベース）。
+"""宣言的SOP定義 × 回答ログ → イベント区間の検出（決定論的・ルールベース）。
 
 設計思想（experiments/sop_step_detect/confidence_judge/ での実験で確立）:
-  質問への回答はVLMにやらせるが、それを手順書と突き合わせて「守られているか」を
-  判定する部分は、VLM(自然文推論)に投げるとよくある単純な数値・順序比較すら
-  間違えることが実験で確認された。したがって判定は常にこの決定的なコードで行う。
+  質問への回答はVLMにやらせるが、回答列から「いつ何が起きたか(区間)」を導出する
+  部分は、VLM(自然文推論)に投げるとよくある単純な数値・順序比較すら
+  間違えることが実験で確認された。したがって導出は常にこの決定的なコードで行う。
 
-正解条件は「events(何を検出するか)」と「relations(それらの時間的関係)」に分離する:
-  events   : 名前 -> 検出条件(evidence式)。同じ質問を複数eventが参照してもよい
-             (例: 指差しを2回する手順は同じ質問を2つのeventで参照し、occurrenceで区別)
-  relations: "A before B" / "A overlaps B" / "not A" の3種類だけで表現する
-             - before      : Aの代表時刻がBの代表時刻より前(order_tolerance_s の許容あり)
-             - overlaps    : Aの検出区間とBの検出区間が重なっている(「同時でよい」「この区間内の
-                              どこかで一度起きればよい」の両方をこれ1つで表現できる)
-             - not_overlaps: 同時に起きてはいけない
-             - not A       : Aは一度も検出されてはいけない(安全条件・禁止工程の検出)
+events: 名前 -> 検出条件(evidence式)。同じ質問を複数eventが参照してもよい
+        (例: 指差しを2回する手順は同じ質問を2つのeventで参照し、occurrenceで区別)
 """
 from __future__ import annotations
 import re
@@ -129,140 +122,3 @@ def detect_events(event_defs: dict[str, Any], frames: list[dict],
                     break
         result[name] = chosen
     return result
-
-
-# ---------------------------------------------------------------------------
-# 関係(relations)の評価
-# ---------------------------------------------------------------------------
-
-REL_RE = re.compile(r"^\s*(\w+)\s+(before|overlaps|not_overlaps)\s+(\w+)\s*$")
-NOT_RE = re.compile(r"^\s*not\s+(\w+)\s*$")
-
-
-def not_only_events(relation_strs: list[str]) -> set[str]:
-    """'not X' でのみ参照されるイベント名の集合(=検出されない方が正しいイベント)。"""
-    return {NOT_RE.match(r).group(1) for r in relation_strs if NOT_RE.match(r)}
-
-
-def check_relations(relation_strs: list[str], events: dict[str, Run | None],
-                     tolerance_s: float = 0.0, gap_tolerance_s: float = 0.0) -> list[dict]:
-    """relations(文字列のリスト)を評価し、違反の詳細dictのリストを返す。空なら違反なし。
-
-    各違反 = {"kind", "relation", "events":[...], "message"}。message は人間向け文字列(不変)。
-    kind: order_reversed / overlap_missing / overlap_forbidden / forbidden / missing
-      - missing は「関係の一方が未検出で評価できない」= coverage起因のFAIL。
-        「順序を実際に取り違えた(order_reversed)」とは別物として区別できるようにする。
-    """
-    violations = []
-    for rel in relation_strs:
-        m_not = NOT_RE.match(rel)
-        if m_not:
-            name = m_not.group(1)
-            if events.get(name) is not None:
-                violations.append({"kind": "forbidden", "relation": rel, "events": [name],
-                    "message": f"「{name}」は検出されてはいけないが、t={events[name].t}sで検出された"})
-            continue
-
-        m = REL_RE.match(rel)
-        if not m:
-            raise ValueError(f"未対応のrelation式: {rel!r}")
-        a_name, op, b_name = m.groups()
-        a, b = events.get(a_name), events.get(b_name)
-        if a is None or b is None:
-            missing = a_name if a is None else b_name
-            violations.append({"kind": "missing", "relation": rel, "events": [missing],
-                "message": f"「{missing}」が検出されていないため関係「{rel}」を評価できない"})
-            continue
-
-        if op == "before":
-            if b.t < a.t - tolerance_s:
-                violations.append({"kind": "order_reversed", "relation": rel, "events": [a_name, b_name],
-                    "message": f"「{a_name}」(t={a.t}s)の後に「{b_name}」(t={b.t}s)"
-                               f"が来るはずが、検出順序は逆だった"})
-        elif op == "overlaps":
-            overlap = not (a.end_idx < b.start_idx or b.end_idx < a.start_idx)
-            if not overlap and gap_tolerance_s > 0:
-                gap = max(a.start_idx, b.start_idx) - min(a.end_idx, b.end_idx)
-                overlap = gap <= gap_tolerance_s
-            if not overlap:
-                violations.append({"kind": "overlap_missing", "relation": rel, "events": [a_name, b_name],
-                    "message": f"「{a_name}」(t={a.t}s)と「{b_name}」(t={b.t}s)は"
-                               f"重なっているはずだが、検出区間が離れていた"})
-        elif op == "not_overlaps":
-            overlap = not (a.end_idx < b.start_idx or b.end_idx < a.start_idx)
-            if overlap:
-                violations.append({"kind": "overlap_forbidden", "relation": rel, "events": [a_name, b_name],
-                    "message": f"「{a_name}」と「{b_name}」は同時に起きてはいけないが、重なっていた"})
-    return violations
-
-
-# ---------------------------------------------------------------------------
-# トップレベルAPI
-# ---------------------------------------------------------------------------
-
-@dataclass
-class JudgeResult:
-    events: dict[str, Run | None]
-    coverage: float
-    violations: list[str]           # 人間向けメッセージ(後方互換)
-    verdict: str                    # "PASS" | "FAIL"
-    violation_details: list[dict]   # {"kind","relation","events","message"} — 理由照合用
-
-
-def judge(sop_def: dict[str, Any], frames: list[dict]) -> JudgeResult:
-    """SOP定義(events/relations/defaults を含む dict)とフレームごとの回答列から判定する。
-
-    frames: [{"idx": int, "t": float, "answers": {question_id: value}}, ...]
-            answers の値は "yes"/"no"/"unclear" 等の文字列(信頼度から argmax を取ったもの、
-            またはVLMの生JSON出力をそのまま使ってもよい)。
-    """
-    defaults = sop_def.get("defaults", {})
-    tolerance_s = defaults.get("order_tolerance_s", 0.0)
-    relations = sop_def.get("relations", [])
-
-    events = detect_events(sop_def["events"], frames, defaults)
-    details = check_relations(relations, events, tolerance_s=tolerance_s)
-    violations = [d["message"] for d in details]
-
-    excluded = not_only_events(relations)
-    required = {k: v for k, v in events.items() if k not in excluded}
-    n_done = sum(1 for v in required.values() if v is not None)
-    coverage = n_done / len(required) if required else 1.0
-
-    verdict = "PASS" if (coverage == 1.0 and not violations) else "FAIL"
-    return JudgeResult(events=events, coverage=coverage, violations=violations,
-                       verdict=verdict, violation_details=details)
-
-
-def check_expectation(sop_def: dict[str, Any], result: JudgeResult) -> dict | None:
-    """SOPに `expect` があれば「verdict」と「なぜ違反か(理由)」の一致を採点する。
-
-    expect:
-      verdict: PASS | FAIL
-      because:                       # FAIL時、当てるべき違反理由(なくてもよい)
-        - relation: "A before B"     # relation式で指定 (順序・重なり系)
-          kind: order_reversed
-        - event: gloves_check        # or event名で指定 (missing系)
-          kind: missing
-
-    戻り値: None(expect未定義) or
-      {"verdict_ok": bool, "reasons": [{... , "caught": bool}], "localized": bool}
-      localized = verdict一致 かつ 期待した理由をすべて(正しいkindで)当てた。
-    """
-    exp = sop_def.get("expect")
-    if not exp:
-        return None
-    verdict_ok = (result.verdict == exp.get("verdict"))
-    reasons = []
-    for want in exp.get("because", []):
-        kind = want.get("kind")
-        if "relation" in want:
-            caught = any(d["kind"] == kind and d["relation"] == want["relation"]
-                         for d in result.violation_details)
-        else:
-            ev = want.get("event")
-            caught = any(d["kind"] == kind and ev in d["events"]
-                         for d in result.violation_details)
-        reasons.append({**want, "caught": caught})
-    localized = verdict_ok and all(r["caught"] for r in reasons)
-    return {"verdict_ok": verdict_ok, "reasons": reasons, "localized": localized}

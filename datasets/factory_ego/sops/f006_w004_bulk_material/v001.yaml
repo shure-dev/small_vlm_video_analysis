@@ -31,7 +31,6 @@ events:
     name: '鉄箱の位置を調整する'
     evidence: reposition_parts_box==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

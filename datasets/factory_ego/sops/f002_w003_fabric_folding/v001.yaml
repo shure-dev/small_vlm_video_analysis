@@ -40,7 +40,6 @@ events:
     name: 'ハンガーを手に取る'
     evidence: take_hanger==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

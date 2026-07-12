@@ -2,11 +2,11 @@
 """prediction run同士を、reference run(Fable/Opus)とのtIoUで予備比較する。
 
 人手GTがないFactory Egoで許される予備比較(モデル間一致・境界差)の1つとして、
-両runの回答から決定論的judgeでイベント区間を導き、イベントごとのtemporal IoUを測る。
+両runの回答から決定論的ルールでイベント区間を導き、イベントごとのtemporal IoUを測る。
 referenceは正解(ground truth)ではないため、この数値は精度ではない。
 
 - 比較はrun同士の共通unit・共通フレームidxに制限する
-  (Opus runは1 unit・先頭10フレームしか持たないため、そのunitは両者を10フレームで判定する)
+  (Opus runは1 unit・先頭10フレームしか持たないため、そのunitは両者を10フレームで比較する)
 - mean tIoUは両runがイベントを検出したペアのみの平均。片側のみの検出は別カウント
   (core.evaluate の mean tIoU と同じ流儀)
 
@@ -26,7 +26,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from small_vlm_sop_check.core.judge import judge  # noqa: E402
+from small_vlm_sop_check.core.events import detect_events  # noqa: E402
 from small_vlm_sop_check.core.evaluate import tiou  # noqa: E402
 from small_vlm_sop_check.core.sop import load_sop  # noqa: E402
 
@@ -49,10 +49,10 @@ def unit_sop(unit_id: str) -> dict:
     return load_sop((DATASET_ROOT / "units" / unit_id / meta["sop_ref"]["path"]).resolve())
 
 
-def judge_events(sop: dict, prediction: dict, common_idx: set[int]) -> dict:
+def unit_events(sop: dict, prediction: dict, common_idx: set[int]) -> dict:
     frames = [{"idx": f["idx"], "t": f["t"], "answers": f["answers"]}
               for f in prediction["frames"] if f["idx"] in common_idx]
-    return judge(sop, frames).events
+    return detect_events(sop["events"], frames, sop.get("defaults"))
 
 
 def answer_agreement(ref_pred: dict, cand_pred: dict, common_idx: set[int]) -> tuple[int, int]:
@@ -88,8 +88,8 @@ def compare(reference: dict, candidate: dict) -> dict:
         m, t = answer_agreement(ref_pred, cand_pred, common_idx)
         agree_matched += m
         agree_total += t
-        ref_events = judge_events(sop, ref_pred, common_idx)
-        cand_events = judge_events(sop, cand_pred, common_idx)
+        ref_events = unit_events(sop, ref_pred, common_idx)
+        cand_events = unit_events(sop, cand_pred, common_idx)
         for name in sop["events"]:
             ref_run, cand_run = ref_events.get(name), cand_events.get(name)
             if ref_run and cand_run:

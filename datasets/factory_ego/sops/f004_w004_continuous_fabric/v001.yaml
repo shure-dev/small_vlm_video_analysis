@@ -40,7 +40,6 @@ events:
     name: '押さえ金の下に生地をセットする'
     evidence: set_under_presser_foot==yes
     min_frames: 3
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

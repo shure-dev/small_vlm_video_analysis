@@ -40,7 +40,6 @@ events:
     name: 'ラックへの載せ替え'
     evidence: place_tree_on_rack==yes
     min_frames: 2
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

@@ -40,7 +40,6 @@ events:
     name: '操作ボタンの押下'
     evidence: press_panel_button==yes
     min_frames: 1
-relations: []
 benchmark:
   schema_version: '1.0'
   version: v001

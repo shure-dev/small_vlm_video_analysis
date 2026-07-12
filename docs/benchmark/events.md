@@ -35,8 +35,8 @@
 
 ## Konro Inspection
 
-[正しい手順SOP](../../datasets/konro_inspection/sops/konro_inspection/correct.yaml)を正本とし、`wrong_order.yaml` と `missing_step.yaml` は同じquestions定義に対する違反条件です。
+[点検手順SOP](../../datasets/konro_inspection/sops/konro_inspection/konro_inspection.yaml)が正本です。
 
 ## Factory Ego
 
-各unitのイベント一覧は `datasets/factory_ego/sops/<unit_id>/v001.yaml` が正本です（方法論改訂に伴い日本語で再定義済み。一覧は[データセットREADME](../../datasets/factory_ego/README.md)を参照）。SOPはすべて `status: provisional`（人手レビュー前）で、relationsは当面使いません（`relations: []`）。
+各unitのイベント一覧は `datasets/factory_ego/sops/<unit_id>/v001.yaml` が正本です（方法論改訂に伴い日本語で再定義済み。一覧は[データセットREADME](../../datasets/factory_ego/README.md)を参照）。SOPはすべて `status: provisional`（人手レビュー前）です。
