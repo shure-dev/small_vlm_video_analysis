@@ -2,18 +2,33 @@
 
 [日本語](README.md) | [Documentation](docs/README.md)
 
-**Edge AI that flags procedure mistakes in work videos — skipped steps, wrong order — without footage ever leaving the site.**
+![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue)
+![Apple Silicon / MLX](https://img.shields.io/badge/Apple%20Silicon-MLX-black)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+![Status: experimental](https://img.shields.io/badge/status-experimental-orange)
 
-An experimental framework for checking whether a work video follows a standard operating procedure (SOP). The local VLM only answers per-frame yes / no questions; **deterministic rules** make the pass / fail judgement.
+**Small, offline VLMs for industrial egocentric video — step-by-step SOP compliance, frame by frame, toward real-time streaming.**
 
-- Produces `PASS` / `FAIL` with violation reasons from a video and an SOP
-- Evaluates observation quality separately from judgement quality using human ground truth
-- Provides CLI tools for annotation, inference, evaluation, and replay
-- Includes results from 15 local VLMs tested under the same demo conditions
+An experimental framework that checks whether a factory worker's first-person (egocentric) video follows a standard operating procedure (SOP), using only small local VLMs.
 
 <p align="center">
   <img src="docs/assets/replay_demo.gif" alt="Replay viewer showing VLM answers, detected events, ground-truth spans, and the final verdict" width="640">
 </p>
+
+## Why this exists
+
+- 🏭 **Industrial focus** — video analysis specialized for factory and manufacturing work, not general video understanding such as movies, game streams, or kitchen egocentric datasets (e.g. Ego4D)
+- ✅ **Procedure first** — instead of captioning or summarizing the video, answer "did the worker perform this SOP step?" at **yes / no granularity** and flag skipped or out-of-order steps. The local VLM only answers per-frame questions; deterministic rules make the pass / fail judgement
+- 🔒 **Fully offline** — footage never leaves the site; everything runs on a small local VLM on Apple Silicon
+- ⏱️ **Streaming-oriented** — frames are processed causally from the front rather than feeding the whole video at once, aiming at real-time streaming
+- 🎓 **Toward training** — beyond evaluation: build human ground-truth data and use it to train and improve small industrial VLMs
+
+## What it does
+
+- Produces `PASS` / `FAIL` with violation reasons from a video and an SOP
+- Evaluates answer quality separately from judgement quality using human ground truth
+- Provides CLI tools for annotation, inference, evaluation, and replay
+- Includes results from 15 local VLMs tested under the same demo conditions
 
 ## Quick start
 
@@ -99,9 +114,9 @@ This is a result for one short demo video, not an estimate of general factory pe
 
 ### Factory Ego
 
-An in-progress comparison dataset of 20 units (20 seconds, 2 fps, 40 frames each) stratified across six factories and twenty work types in Egocentric-10K, aimed at procedure-compliance judgment. Clip selection uses the LLM-generated transcripts of [annotated-egocentric-10k-dataset](https://github.com/fit-alessandro-berti/annotated-egocentric-10k-dataset), which are never treated as ground truth; event definitions are authored by viewing the extracted frames (see docs/benchmark/events.md). Each SOP defines 3-4 procedure-step events with Japanese single-sentence questions. All current units are `dev_seen`. Human ground truth is not available yet, so formal precision, recall, F1, and tIoU are not reported. Because the upstream dataset is gated, extracted frames are excluded from the public repository and only SHA manifests are tracked. After accepting the upstream gated terms, `tools/benchmark/fetch_factory_ego.py` reconstructs byte-identical local media (see the [operations guide](docs/benchmark/operations.md)).
+An in-progress comparison dataset of 20 units (20 seconds, 2 fps, 40 frames each) stratified across six factories and twenty work types in Egocentric-10K, aimed at procedure-compliance judgment. Factory first-person footage is chosen over kitchen or daily-life egocentric datasets (e.g. Ego4D) because this repository deliberately specializes in industrial and manufacturing work. Clip selection uses the LLM-generated transcripts of [annotated-egocentric-10k-dataset](https://github.com/fit-alessandro-berti/annotated-egocentric-10k-dataset), which are never treated as ground truth; event definitions are authored by viewing the extracted frames (see docs/benchmark/events.md). Each SOP defines 3-4 procedure-step events with Japanese single-sentence questions. All current units are `dev_seen`. Human ground truth is not available yet, so formal precision, recall, F1, and tIoU are not reported. Because the upstream dataset is gated, extracted frames are excluded from the public repository and only SHA manifests are tracked. After accepting the upstream gated terms, `tools/benchmark/fetch_factory_ego.py` reconstructs byte-identical local media (see the [operations guide](docs/benchmark/operations.md)).
 
-One prediction run exists so far — Claude Opus 4.8 online inference over a causal window of the last five frames (20/20 units). Its formal accuracy stays unreported until human ground truth is available. See the [Factory Ego dataset notes](datasets/factory_ego/README.md) and [current comparison report](reports/model_comparison.md).
+Prediction runs so far: one Claude Opus 4.8 online-inference run over a causal window of the last five frames (20/20 units), plus pilot6-subset runs of 12 small local VLMs. Formal accuracy stays unreported until human ground truth is available. See the [Factory Ego dataset notes](datasets/factory_ego/README.md) and [current comparison report](reports/model_comparison.md).
 
 ## Repository layout
 
