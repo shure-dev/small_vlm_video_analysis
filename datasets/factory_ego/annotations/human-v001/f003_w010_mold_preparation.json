@@ -1,0 +1,15 @@
+{
+  "schema_version": "0.2",
+  "sop_id": "f003_w010_mold_preparation",
+  "fps": 2.0,
+  "n_frames": 40,
+  "annotated_at": "2026-07-12T11:23:38+00:00",
+  "events": {
+    "lift_pattern_plate": [
+      {
+        "start_idx": 0,
+        "end_idx": 3
+      }
+    ]
+  }
+}

@@ -180,13 +180,6 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 .q-input:hover { border-color: var(--border); }
 .q-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
 .q-input::placeholder { color: var(--text-faint); font-weight: 400; font-size: var(--fs-md); }
-.id-input {
-  font-size: var(--fs-xs); color: var(--text-faint); font-family: var(--mono);
-  border: 1px solid transparent; border-radius: var(--r1); padding: 1px var(--s1);
-  background: transparent; text-align: right;
-}
-.id-input:hover { border-color: var(--border); color: var(--text-muted); }
-.id-input:focus { outline: none; border-color: var(--accent); background: var(--surface); color: var(--text); }
 
 /* timeline lane: ドラッグで区間を引く。複数回起きるなら区間を複数引く */
 .lane {
@@ -502,19 +495,7 @@ function eventCard(ev) {
   askIn.title = "この文がフレームごとのVLMプロンプトになる";
   askIn.onkeydown = e => { if (e.key === "Enter" && !e.isComposing) askIn.blur(); e.stopPropagation(); };
   askIn.onblur = () => { if ((ev.question || "") !== askIn.value.trim()) sopOp({ op: "upsert_event", event_id: ev.id, ask: askIn.value.trim() }); };
-  const idIn = el("input", "id-input");
-  idIn.value = ev.id; idIn.title = "イベントid(英数字/_)。変更すると注釈キーも追随する";
-  idIn.size = Math.max(6, ev.id.length);
-  idIn.onkeydown = e => { if (e.key === "Enter" && !e.isComposing) idIn.blur(); e.stopPropagation(); };
-  idIn.onblur = async () => {
-    const v = idIn.value.trim();
-    if (v === ev.id) return;
-    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(v)) { toast("idは英字/_で始まる識別子にしてください"); idIn.value = ev.id; return; }
-    if (selected === ev.id) selected = v;
-    const ok = await sopOp({ op: "rename_event", event_id: ev.id, new_id: v }, "idを変更しました");
-    if (!ok) { if (selected === v) selected = ev.id; idIn.value = ev.id; }
-  };
-  qrow.append(askIn, idIn);
+  qrow.append(askIn);
   mainCol.append(qrow);
 
   top.append(badge, mainCol);
@@ -697,7 +678,7 @@ document.addEventListener("mouseup", () => {
 
 // ---- イベント追加/削除 ------------------------------------------------------
 // 追加はフォームを挟まず、その場でカードを作って質問入力へフォーカスする。
-// IDは自動連番(あとからカード上で変更できる)。
+// イベントidは自動連番の内部キー(回答JSON・GT・SOPの結合に使う)。UIには出さない。
 function nextEventId() {
   const taken = new Set(cur ? cur.events.map(e => e.id) : []);
   let n = (cur ? cur.events.length : 0) + 1, id;

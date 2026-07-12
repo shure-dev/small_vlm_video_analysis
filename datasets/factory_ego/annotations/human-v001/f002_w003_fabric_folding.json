@@ -3,7 +3,7 @@
   "sop_id": "f002_w003_fabric_folding",
   "fps": 2.0,
   "n_frames": 40,
-  "annotated_at": "2026-07-12T09:49:50+00:00",
+  "annotated_at": "2026-07-12T10:45:15+00:00",
   "events": {
     "spread_garment_on_table": [
       {
@@ -13,7 +13,7 @@
     ],
     "take_hanger": [
       {
-        "start_idx": 35,
+        "start_idx": 36,
         "end_idx": 39
       }
     ]
