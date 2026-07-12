@@ -33,11 +33,11 @@ def test_module_cli_detects_reference_fixture():
         "--answer-log", str(DATASET / "fixtures" / "reference_outputs" / "answer_log.json"),
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    assert "検出: 6/7 イベント" in completed.stdout
+    assert "検出: 5/6 イベント" in completed.stdout
 
 
 def test_browser_templates_are_packaged_resources():
     annotator = template_text("annotator.html")
     replay = template_text("replay.html")
-    assert "__ANNOTATOR_DATA__" in annotator
+    assert "__ANNOTATOR_BOOT__" in annotator
     assert "__REPLAY_DATA__" in replay

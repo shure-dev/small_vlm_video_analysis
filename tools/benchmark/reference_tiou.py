@@ -27,8 +27,20 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
 from small_vlm_sop_check.core.events import detect_events  # noqa: E402
-from small_vlm_sop_check.core.evaluate import tiou  # noqa: E402
 from small_vlm_sop_check.core.sop import load_sop  # noqa: E402
+
+
+def _run_idxs(runs) -> set[int]:
+    """検出区間リストの実一致フレームidxの和集合(max_gapの橋渡しは含まない)。"""
+    out: set[int] = set()
+    for r in runs:
+        out.update(r.idxs if r.idxs else range(r.start_idx, r.end_idx + 1))
+    return out
+
+
+def _tiou_sets(a: set[int], b: set[int]) -> float:
+    inter = len(a & b)
+    return round(inter / len(a | b), 3) if inter else 0.0
 
 DATASET_ROOT = ROOT / "datasets" / "factory_ego"
 RUNS_ROOT = ROOT / "runs"
@@ -90,13 +102,15 @@ def compare(reference: dict, candidate: dict) -> dict:
         agree_total += t
         ref_events = unit_events(sop, ref_pred, common_idx)
         cand_events = unit_events(sop, cand_pred, common_idx)
-        for name in sop["events"]:
-            ref_run, cand_run = ref_events.get(name), cand_events.get(name)
-            if ref_run and cand_run:
-                status, value = "both", tiou(ref_run, cand_run)
-            elif ref_run:
+        for ev_def in sop["events"]:
+            name = ev_def["id"]
+            ref_runs, cand_runs = ref_events.get(name, []), cand_events.get(name, [])
+            if ref_runs and cand_runs:
+                # イベント単位の比較: 全出現区間の実一致フレームの和集合どうしのIoU
+                status, value = "both", _tiou_sets(_run_idxs(ref_runs), _run_idxs(cand_runs))
+            elif ref_runs:
                 status, value = "ref_only", None
-            elif cand_run:
+            elif cand_runs:
                 status, value = "cand_only", None
             else:
                 status, value = "both_absent", None

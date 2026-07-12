@@ -47,15 +47,17 @@ def resolve_model(key: str) -> str:
 THINKING = {"auto": None, "on": True, "off": False}
 
 
-def _print_result(sop_name: str, events: dict[str, Run | None]) -> None:
+def _print_result(sop_name: str, events: dict[str, list[Run]]) -> None:
     print(f"\nSOP: {sop_name}")
     print(f"{'event':14s} {'status':13s} {'t(s)':>6s}  span(idx)")
-    for name, run in events.items():
-        if run:
-            print(f"{name:14s} {'detected':13s} {run.t:>6.1f}  {run.start_idx}-{run.end_idx}")
-        else:
+    for name, runs in events.items():
+        if not runs:
             print(f"{name:14s} {'NOT_DETECTED':13s} {'  -':>6s}")
-    n_det = sum(1 for r in events.values() if r is not None)
+            continue
+        for k, run in enumerate(runs):
+            label = name if len(runs) == 1 else f"{name}[{k + 1}]"
+            print(f"{label:14s} {'detected':13s} {run.t:>6.1f}  {run.start_idx}-{run.end_idx}")
+    n_det = sum(1 for runs in events.values() if runs)
     print(f"\n検出: {n_det}/{len(events)} イベント\n")
 
 
@@ -67,7 +69,7 @@ def _run_observer(sop, meta_or_paths, model_key, out_path, max_tokens=200,
     domain_hint = sop["sop"].get("domain_hint", "これは作業動画の1フレームです")
     model_name = resolve_model(model_key)  # エイリアス or フルモデルIDのどちらでも受ける
     cls = TransformersObserver if backend == "transformers" else Observer
-    obs = cls(model=model_name, questions=sop["questions"],
+    obs = cls(model=model_name, questions=sop["events"],
               enable_thinking=THINKING[thinking])
 
     if meta_or_paths and isinstance(meta_or_paths[0], str):

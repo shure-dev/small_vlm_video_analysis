@@ -292,13 +292,17 @@ function setupUnit() {
 }
 
 // 正解区間(あれば)。tIoU = フレームidx集合同士の temporal IoU。
-// 検出側は実際に一致したフレーム(ev.idxs)で数え、max_gapで橋渡しした隙間は含めない。
-function tiou(gtSpan, ev) {
+// 正解側は全区間の和集合、検出側は実際に一致したフレーム(ev.idxs)で数え、
+// max_gapで橋渡しした隙間は含めない。
+function tiou(gtSpans, ev) {
   const det = new Set(ev.idxs);
+  const gtSet = new Set();
+  for (const sp of gtSpans)
+    for (let i = sp.start_idx; i <= sp.end_idx; i++) gtSet.add(i);
   let inter = 0;
-  for (let i = gtSpan.start_idx; i <= gtSpan.end_idx; i++) if (det.has(i)) inter++;
+  gtSet.forEach(i => { if (det.has(i)) inter++; });
   if (inter <= 0) return 0;
-  const union = (gtSpan.end_idx - gtSpan.start_idx + 1) + det.size - inter;
+  const union = gtSet.size + det.size - inter;
   return inter / union;
 }
 
@@ -309,7 +313,7 @@ function renderEvents() {
     const spans = ev.spans || [];               // 全出現区間(同じ動作の複数回を各回別々に)
     const detected = spans.length > 0;
     const active = spans.some(s => idx >= s.start && idx <= s.end);
-    const gtSpan = GT ? GT[name] : undefined;   // undefined=未注釈 / null=起きていない
+    const gtSpans = GT ? GT[name] : undefined;  // undefined=未注釈 / null=起きていない / [区間,...]
     const spanText = spans.map(s => s.start === s.end ? `${s.start}` : `${s.start}-${s.end}`).join(", ");
 
     let statusText, statusClass;
@@ -322,15 +326,16 @@ function renderEvents() {
       statusText = "未検出";
       statusClass = "missing";
     }
-    if (gtSpan && detected) {
-      statusText += ` / tIoU ${tiou(gtSpan, ev).toFixed(2)}`;
-    } else if (gtSpan && !detected) {
-      statusText = `見逃し(正解: frame ${gtSpan.start_idx}-${gtSpan.end_idx})`;
+    if (gtSpans && detected) {
+      statusText += ` / tIoU ${tiou(gtSpans, ev).toFixed(2)}`;
+    } else if (gtSpans && !detected) {
+      const gtText = gtSpans.map(sp => `${sp.start_idx}-${sp.end_idx}`).join(", ");
+      statusText = `見逃し(正解: frame ${gtText})`;
       statusClass = "missing";
-    } else if (gtSpan === null && detected) {
+    } else if (gtSpans === null && detected) {
       statusText += " / 誤検出(正解: 起きていない)";
       statusClass = "missing";
-    } else if (gtSpan === null && !detected) {
+    } else if (gtSpans === null && !detected) {
       statusText = "未検出(正解: 起きていない)";
       statusClass = "correctly-absent";
     }
@@ -353,11 +358,11 @@ function renderEvents() {
       bar.style.width = ((s.end - s.start + 1) / U().n_frames * 100) + "%";
       tl.appendChild(bar);
     }
-    if (gtSpan) {
+    for (const sp of (gtSpans || [])) {          // 正解も全区間を帯で重ねる
       const span = document.createElement("div");
       span.className = "span gt";
-      span.style.left = (gtSpan.start_idx / U().n_frames * 100) + "%";
-      span.style.width = ((gtSpan.end_idx - gtSpan.start_idx + 1) / U().n_frames * 100) + "%";
+      span.style.left = (sp.start_idx / U().n_frames * 100) + "%";
+      span.style.width = ((sp.end_idx - sp.start_idx + 1) / U().n_frames * 100) + "%";
       tl.appendChild(span);
     }
     const playhead = document.createElement("div");

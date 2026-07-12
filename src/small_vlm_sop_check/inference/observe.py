@@ -1,4 +1,4 @@
-"""SOP定義の questions: からプロンプトを自動生成し、
+"""SOP定義の events: (イベント=質問)からプロンプトを自動生成し、
 ローカル小型VLM(Qwen3-VL, mlx_vlm)にフレームごとの質問へ回答させる（Phase 1）。
 
 各質問への回答だけでなく、生成トークンのlogitから実測した信頼度(自己申告ではない)も
@@ -6,7 +6,8 @@
 可視化できる(experiments/sop_step_detect/confidence_judge/ での実験で技術検証済み)。
 
 ドメイン固有の知識(ガスコンロの点検作業など)は一切持たない。
-SOP定義ファイルの `questions:` セクションだけを見てプロンプトを組み立てる。
+SOP定義の各イベントの id / ask / values だけを見てプロンプトを組み立てる
+(このモジュール内では従来どおり questions と呼ぶ。イベント=質問のため同義)。
 """
 from __future__ import annotations
 import math
@@ -56,7 +57,7 @@ class Observer:
     """VLMをロードして、フレーム1枚ごとの回答+信頼度を返すオブジェクト。
 
     使い方:
-        obs = Observer(model="mlx-community/Qwen3-VL-4B-Instruct-4bit", questions=sop["questions"])
+        obs = Observer(model="mlx-community/Qwen3-VL-4B-Instruct-4bit", questions=sop["events"])
         record = obs.ask(image_path, t=7.0, domain_hint=sop["sop"]["domain_hint"])
         # record = {"raw": "...", "confidence": {question_id: {"probs": {...}, "argmax": "..."}}}
     """
