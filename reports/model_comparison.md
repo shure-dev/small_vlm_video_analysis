@@ -21,22 +21,25 @@
 
 Opus参照の回答分布は **yes 20% / no 80%**、Opusが検出したイベントは6 unitで計21個。
 
-| model | サイズ | backend | yes率 | 回答一致率 | mean tIoU | Opus21中の検出 | peak_mb | 所見 |
-|---|---|---|---:|---:|---:|---:|---:|---|
-| Qwen3-VL-4B-Instruct | 4B | mlx | 14% | 82% | 0.34 | 11 | 4271 | Opus分布に最も近い。保守的で崩れなし |
-| Gemma4-E2B-it | E2B | mlx | 15% | 79% | 0.28 | 11 | 4541 | Opus分布に近い |
-| SmolVLM2-2.2B-Instruct | 2.2B | transformers/fp32 | 27% | 72% | 0.27 | 16 | — | Opus分布寄り。fp32必須（下記） |
-| MiniCPM-V-4.6 | 1.3B | mlx | 14% | 64% | 0.32 | 9 | 3647 | f006で値のクォート欠落→unclear化（5/6 unitは健全） |
-| Qwen3-VL-2B-Instruct | 2B | mlx | 41% | 64% | 0.29 | 18 | 2854 | 0.6.3のJSON崩壊懸念はprefillで回避 |
-| InternVL3-2B | 2B | mlx | 50% | 55% | 0.27 | 16 | 2458 | yes過剰傾向 |
-| Qwen3.5-4B-MLX | 4B | mlx | 59% | 53% | 0.25 | **21** | 5369 | Opusの全21イベントを検出するがyes過剰で区間が膨張 |
-| Qwen3.5-2B-MLX | 2B | mlx | 62% | 51% | 0.23 | 20 | 3331 | yes過剰 |
-| Qwen2.5-VL-3B-Instruct | 3B | mlx | 46% | 48% | 0.20 | 14 | 4131 | unclear 10% |
-| Qwen3.5-0.8B-MLX | 0.8B | mlx | 8% | 81% | 0.38 | 11 | 2237 | ⚠ ほぼ全no（91%）。高一致・高tIoUはno基準率の産物で識別力ではない |
-| SmolVLM2-500M-Video | 0.5B | transformers/fp32 | 66% | 19% | 0.17 | 14 | — | ⚠ 退化（多くのunitで全yes/unclear・全40フレーム同一） |
-| SmolVLM2-256M-Video | 0.26B | transformers/fp32 | 55% | 12% | 0.14 | 16 | — | ⚠ 退化（f002は全unclear・f003は76%unclear） |
+挙動でグループ分けして並べた（tIoU/一致率の単純な降順は下記の落とし穴で誤読しやすいため）。yes率はOpusの20%に近いほど分布が素直。
 
-LFM2.5-VL-1.6B は **未計測**（mlx-vlm 0.6.3の `lfm2_vl` layer_normバグでロード不可。修正版0.6.4はPyPIにwheelが無く、ソースビルドも環境のuv設定で不可）。
+| 挙動 | model | サイズ | backend | yes率 | 回答一致率 | mean tIoU | Opus21中の検出 | peak_mb | 所見 |
+|---|---|---|---|---:|---:|---:|---:|---:|---|
+| 健全・Opus寄り | Qwen3-VL-4B-Instruct | 4B | mlx | 14% | 82% | 0.34 | 11 | 4271 | Opus分布に最も近い。保守的で崩れなし |
+| 健全・Opus寄り | Gemma4-E2B-it | E2B | mlx | 15% | 79% | 0.28 | 11 | 4541 | Opus分布に近い |
+| 健全・Opus寄り | SmolVLM2-2.2B-Instruct | 2.2B | transformers/fp32 | 27% | 72% | 0.27 | 16 | — | Opus分布寄り。fp32必須（下記） |
+| 健全・Opus寄り | MiniCPM-V-4.6 | 1.3B | mlx | 14% | 64% | 0.32 | 9 | 3647 | f006で値のクォート欠落→unclear化（5/6 unitは健全） |
+| yes過剰 | Qwen3-VL-2B-Instruct | 2B | mlx | 41% | 64% | 0.29 | 18 | 2854 | 0.6.3のJSON崩壊懸念はprefillで回避 |
+| yes過剰 | Qwen2.5-VL-3B-Instruct | 3B | mlx | 46% | 48% | 0.20 | 14 | 4131 | unclear 10% |
+| yes過剰 | InternVL3-2B | 2B | mlx | 50% | 55% | 0.27 | 16 | 2458 | yes過剰傾向 |
+| yes過剰 | Qwen3.5-4B-MLX | 4B | mlx | 59% | 53% | 0.25 | **21** | 5369 | Opusの全21イベントを検出するがyes過剰で区間が膨張 |
+| yes過剰 | Qwen3.5-2B-MLX | 2B | mlx | 62% | 51% | 0.23 | 20 | 3331 | yes過剰 |
+| ⚠退化 | Qwen3.5-0.8B-MLX | 0.8B | mlx | 8% | 81% | 0.38 | 11 | 2237 | ほぼ全no（91%）。高一致・高tIoUはno基準率の産物で識別力ではない |
+| ⚠退化 | SmolVLM2-500M-Video | 0.5B | transformers/fp32 | 66% | 19% | 0.17 | 14 | — | 多くのunitで全yes/unclear・全40フレーム同一 |
+| ⚠退化 | SmolVLM2-256M-Video | 0.26B | transformers/fp32 | 55% | 12% | 0.14 | 16 | — | f002は全unclear・f003は76%unclear |
+| 未計測 | LFM2.5-VL-1.6B | 1.6B | mlx | — | — | — | — | — | mlx-vlm 0.6.3の `lfm2_vl` layer_normバグでロード不可。修正版0.6.4はwheel入手不可 |
+
+「挙動」は yes率とunclear率・全40フレーム同一の有無から分類した診断的ラベル（Opusの yes 20%/no 80% を基準に、極端に偏るか定数出力へ退化しているか）。「Opus21中の検出」= Opusが検出した全21イベントのうち、そのモデルも検出できた数（both_detected）。
 
 ### この表の読み方（重要・数値の落とし穴）
 
