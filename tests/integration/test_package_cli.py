@@ -39,5 +39,5 @@ def test_module_cli_detects_reference_fixture():
 def test_browser_templates_are_packaged_resources():
     annotator = template_text("annotator.html")
     replay = template_text("replay.html")
-    assert "__ANNOTATOR_DATA__" in annotator
+    assert "__ANNOTATOR_BOOT__" in annotator
     assert "__REPLAY_DATA__" in replay
