@@ -21,12 +21,6 @@ events:
   - 'yes'
   - 'no'
   min_frames: 4
-- id: trim_threads_hem
-  ask: 作業者が服の裾をめくり上げて糸を切っている
-  values:
-  - 'yes'
-  - 'no'
-  min_frames: 3
 benchmark:
   schema_version: '1.0'
   version: v001

@@ -55,13 +55,13 @@
       "frame_count": 40,
       "frames_manifest_sha256": "71175039f7b7c244a4d26405f8b94f0e7723380624209ac8843f216907e54924",
       "meta_sha256": "61e3d567532cbc3623abad539c04ba83efd2347756507e04af50e6c96df0cb1c",
-      "sop_sha256": "d0084571632343dc685a9204c015cce086e473df955d20a03abe2d51cd24bfb8"
+      "sop_sha256": "658a175e8cf529a9814db064a6ebd8f484b052b176cb909587126744c2ae61c9"
     },
     "f004_w002_thread_trimming": {
       "frame_count": 40,
       "frames_manifest_sha256": "8b3497c89b62f79fc3dcad513fe7e623391fa683a2527355e8bf2dbc3afddd3d",
       "meta_sha256": "cb71b7a282b4f0ac89c8abb10e4b1accf43147a2dbd1faeca5f5f242a7b382a1",
-      "sop_sha256": "7787904fc7e1bf8b7d3dc70840704e5d74472b3242a1cd18eca3e09031bf465f"
+      "sop_sha256": "c8f3015a56243ad04010249e5d23221030f5d35ad5eb81301473c1a326f50a20"
     },
     "f004_w004_continuous_fabric": {
       "frame_count": 40,

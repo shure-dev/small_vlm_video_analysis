@@ -3,7 +3,7 @@
   "sop_id": "f003_w010_mold_preparation",
   "fps": 2.0,
   "n_frames": 40,
-  "annotated_at": "2026-07-12T11:32:55+00:00",
+  "annotated_at": "2026-07-12T11:33:35+00:00",
   "events": {
     "lift_pattern_plate": [
       {
@@ -20,7 +20,13 @@
     "pick_parts_from_box": [
       {
         "start_idx": 22,
-        "end_idx": 24
+        "end_idx": 23
+      }
+    ],
+    "carry_sand_mold": [
+      {
+        "start_idx": 25,
+        "end_idx": 34
       }
     ]
   }
