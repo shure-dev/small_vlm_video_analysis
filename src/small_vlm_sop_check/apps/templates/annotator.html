@@ -85,6 +85,7 @@ body {
   padding: 1px var(--s2);
   border-radius: var(--pill);
   font-weight: 600;
+  white-space: nowrap;
 }
 .badge.todo { background: var(--warn-weak); color: var(--warn); }
 .badge.done { background: var(--success-weak); color: var(--success); }
@@ -107,7 +108,6 @@ body {
 }
 .field:focus { outline: 2px solid var(--accent-weak); border-color: var(--accent); }
 select.field { cursor: pointer; }
-label.lbl { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: var(--s1); }
 kbd {
   font-family: var(--mono); font-size: var(--fs-xs);
   background: var(--surface); border: 1px solid var(--border-strong);
@@ -150,14 +150,7 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 }
 .playbar { display: flex; align-items: center; gap: var(--s2); margin-top: var(--s3); }
 #scrubber { flex: 1; accent-color: var(--accent); }
-#timeLabel { font-variant-numeric: tabular-nums; font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; min-width: 116px; text-align: right; }
-#strip { display: flex; gap: 2px; margin-top: var(--s3); min-width: 0; }
-#strip img {
-  flex: 1 1 0; min-width: 0; aspect-ratio: 4/3; object-fit: cover;
-  border-radius: 3px; border: 2px solid transparent; cursor: pointer; opacity: .7;
-}
-#strip img:hover { opacity: 1; }
-#strip img.current { border-color: var(--accent); opacity: 1; }
+#timeLabel { font-variant-numeric: tabular-nums; font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; min-width: 128px; text-align: right; }
 
 /* --- context panel ------------------------------------------------------- */
 .ctx { padding: var(--s4); }
@@ -175,6 +168,7 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 .erow { padding: var(--s3); position: relative; }
 .erow.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak) inset; }
 .erow-top { display: flex; align-items: flex-start; gap: var(--s2); }
+.erow-top .badge { margin-top: 5px; }
 .erow-main { flex: 1; min-width: 0; }
 .name-input {
   font-size: var(--fs-lg); font-weight: 600; width: 100%;
@@ -183,52 +177,55 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 }
 .name-input:hover { border-color: var(--border); }
 .name-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
-.name-input.untitled::placeholder { color: var(--text-faint); font-weight: 400; }
-.meta-line { display: flex; align-items: center; gap: var(--s2); margin-top: 3px; flex-wrap: wrap; }
-.evidence { font-size: var(--fs-xs); color: var(--text-faint); font-family: var(--mono); }
-.occ { font-size: var(--fs-xs); color: var(--text-muted); }
+.name-input::placeholder { color: var(--text-faint); font-weight: 400; }
+
+/* 「VLMへ送る質問」行: どちらがプロンプトに行くかを常に明示する */
+.qrow { display: flex; align-items: center; gap: var(--s2); margin-top: var(--s2); }
+.qtag {
+  font-size: var(--fs-xs); color: var(--accent); background: var(--accent-weak);
+  padding: 1px var(--s2); border-radius: var(--pill); white-space: nowrap; font-weight: 600;
+}
 .q-input {
-  width: 100%; margin-top: var(--s2); font-size: var(--fs-sm); color: var(--text-muted);
+  flex: 1; min-width: 0; font-size: var(--fs-sm); color: var(--text);
   border: 1px solid transparent; border-radius: var(--r1); padding: 3px var(--s2);
   background: transparent; font-family: inherit;
 }
 .q-input:hover { border-color: var(--border); }
-.q-input:focus { outline: none; border-color: var(--accent); background: var(--surface); color: var(--text); }
+.q-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+.q-input::placeholder { color: var(--text-faint); }
+.idtag { font-size: var(--fs-xs); color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
 
-/* timeline lane: 全イベント同じ時間軸。ドラッグで区間を塗る */
+/* timeline lane: 全イベント同じ時間軸。ドラッグで区間を引き、掴んで動かす */
 .lane {
-  position: relative; height: 26px; margin-top: var(--s3);
+  position: relative; height: 34px; margin-top: var(--s3);
   background: var(--surface-2); border-radius: var(--r1);
-  cursor: crosshair; user-select: none; overflow: hidden;
+  cursor: crosshair; user-select: none; -webkit-user-select: none;
 }
-.lane .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0,0,0,.05); }
+.lane .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0,0,0,.045); pointer-events: none; }
+.lane .tick.major { background: rgba(0,0,0,.12); }
 .lane .span {
-  position: absolute; top: 3px; bottom: 3px;
-  background: var(--accent); opacity: .8; border-radius: 4px;
+  position: absolute; top: 4px; bottom: 4px;
+  background: var(--accent); opacity: .85; border-radius: 5px;
+  cursor: grab;
 }
-.lane .span.preview { opacity: .4; }
+.lane .span:active { cursor: grabbing; }
+.lane .span.preview { opacity: .4; pointer-events: none; }
 .lane .handle {
-  position: absolute; top: 0; bottom: 0; width: 9px;
-  cursor: ew-resize; background: rgba(0,0,0,.001);
+  position: absolute; top: -4px; bottom: -4px; width: 16px;
+  cursor: ew-resize; background: transparent;
 }
 .lane .handle::after {
-  content: ""; position: absolute; top: 5px; bottom: 5px; left: 3px; width: 3px;
-  background: #fff; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+  content: ""; position: absolute; top: 8px; bottom: 8px; left: 6px; width: 4px;
+  background: #fff; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.25);
 }
-.lane .handle.l { transform: translateX(-4px); }
-.lane .handle.r { transform: translateX(-5px); }
-.lane .playhead { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text); pointer-events: none; }
-.lane.absent { background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 6px, #e9ebef 6px, #e9ebef 12px); cursor: default; }
+.lane .handle.l { left: 0; transform: translateX(-8px); }
+.lane .handle.r { right: 0; transform: translateX(8px); }
+.lane .playhead { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); pointer-events: none; }
+.lane.absent { background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 6px, #e9ebef 6px, #e9ebef 12px); }
 
 .ebtns { display: flex; gap: var(--s2); margin-top: var(--s3); align-items: center; flex-wrap: wrap; }
 .ebtns .grow { flex: 1; }
 .state-text { font-size: var(--fs-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
-
-/* add-event form */
-.addform { padding: var(--s4); display: none; flex-direction: column; gap: var(--s3); }
-.addform.open { display: flex; }
-.addform .row { display: flex; gap: var(--s3); }
-.addform .row > div { flex: 1; }
 
 /* inline delete confirm */
 .confirm { display: flex; align-items: center; gap: var(--s2); background: var(--danger-weak); padding: var(--s2) var(--s3); border-radius: var(--r1); margin-top: var(--s3); }
@@ -268,7 +265,6 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
           <input type="range" id="scrubber" min="0" value="0" step="1">
           <span id="timeLabel"></span>
         </div>
-        <div id="strip"></div>
       </div>
 
       <div class="card ctx">
@@ -279,42 +275,19 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 
       <div class="card help">
         <h2 class="section">操作</h2>
-        イベントを選び（クリック / <kbd>↑</kbd><kbd>↓</kbd>）、フレームを合わせて
-        <kbd>i</kbd>=開始 <kbd>o</kbd>=終了。起きないイベントは <kbd>n</kbd>、注釈を消すのは <kbd>x</kbd>。
-        <kbd>←</kbd><kbd>→</kbd>=フレーム移動。<br>
-        タイムライン上を<b>ドラッグ</b>すると区間を直接引ける。区間の端をつまんで伸縮も可。
-        空いた所をクリックすると再生位置だけ動く。<b>すべて自動保存。</b>
+        タイムラインを<b>ドラッグ</b>して区間を引く。区間は<b>本体を掴んで移動</b>、
+        <b>両端の白いつまみで伸縮</b>できる。空いた所のクリックは再生位置の移動だけ。<br>
+        キーボード: <kbd>←</kbd><kbd>→</kbd>=フレーム移動、<kbd>↑</kbd><kbd>↓</kbd>=イベント選択、
+        <kbd>i</kbd>=開始をここに <kbd>o</kbd>=終了をここに、<kbd>n</kbd>=起きていない、<kbd>x</kbd>=クリア。
+        <b>すべて自動保存。</b>
       </div>
     </section>
 
     <section class="col-right">
       <div class="events-head">
         <h2 class="section" style="margin:0">イベント区間（事実の記録：いつ何が起きたか）</h2>
-        <button class="btn primary" id="addToggle">＋ イベントを追加</button>
+        <button class="btn primary" id="addBtn">＋ イベントを追加</button>
       </div>
-
-      <div class="card addform" id="addForm">
-        <div class="row">
-          <div>
-            <label class="lbl">日本語ラベル</label>
-            <input id="newName" class="field" placeholder="例: 部品を検査する">
-          </div>
-          <div>
-            <label class="lbl">イベントID（英数字・_）</label>
-            <input id="newId" class="field" placeholder="例: inspect_part">
-          </div>
-        </div>
-        <div>
-          <label class="lbl">VLMへの質問（yes/noで答えられる文）</label>
-          <input id="newAsk" class="field" placeholder="例: 作業者は部品を検査しているか？">
-        </div>
-        <div class="ebtns">
-          <span class="grow"></span>
-          <button class="btn ghost" id="addCancel">やめる</button>
-          <button class="btn primary" id="addSave">追加する</button>
-        </div>
-      </div>
-
       <div id="events"></div>
     </section>
   </main>
@@ -328,12 +301,13 @@ const BOOT = "__ANNOTATOR_BOOT__";
 // ---- 状態 -----------------------------------------------------------------
 let units = BOOT.units || [];          // [{dataset,unit_id,fps,has_frames,has_gt}]
 let cur = null;                        // 現在のunitの完全データ
-let gt = {};                           // cur.gt_events への参照（{id:{start_idx,end_idx}|null}）
+let gt = {};                           // {event_id: {start_idx,end_idx} | null}。キー無し=未注釈
 let N = 0;                             // フレーム数
 let idx = 0;                           // 再生位置
 let selected = null;                   // 選択中のイベントid
-let drag = null;                       // ドラッグ状態
+let drag = null;                       // ドラッグ状態(mousedown時にrectをキャッシュ)
 let hintTimer = null;                  // ヒント編集のデバウンス
+let focusEventId = null;               // 追加直後にタイトルへフォーカスする対象
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
@@ -349,9 +323,7 @@ async function api(method, path, body) {
   return out;
 }
 
-let saveState = "idle";
 function setSave(state, msg) {
-  saveState = state;
   const c = $("#saveStatus");
   c.className = "chip" + (state === "idle" ? "" : " " + state);
   c.innerHTML = "";
@@ -381,7 +353,7 @@ async function saveGt() {
   }
 }
 
-// ---- SOP編集（ヒント・イベント追加/削除/名称） ----------------------------
+// ---- SOP編集（ヒント・イベント追加/削除/名称/質問） ------------------------
 async function sopOp(payload, okMsg) {
   setSave("saving", "保存中…");
   try {
@@ -423,11 +395,9 @@ function applyUnit(data, { keepView }) {
   $("#hint").value = cur.sop.domain_hint || "";
   renderReference();
   syncSelectors();
-  buildStrip();
-  renderAll();
+  renderEvents();
+  renderFrame();
 }
-
-function renderAll() { renderFrame(); renderEvents(); }
 
 // ---- セレクタ -------------------------------------------------------------
 function datasetsList() {
@@ -477,32 +447,18 @@ function listBlock(title, items) {
 }
 function esc(s) { const d = el("div"); d.textContent = s; return d.innerHTML; }
 
-// ---- フレーム表示（軽い更新：再生位置スクラブ用） -------------------------
-const strip = $("#strip");
-function buildStrip() {
-  strip.innerHTML = "";
-  cur.frames.forEach((name, i) => {
-    const img = el("img"); img.src = frameSrc(name); img.title = `frame ${i} · t=${cur.times[i]}s`;
-    img.onclick = () => { idx = i; renderFrame(); };
-    strip.append(img);
-  });
-}
+// ---- フレーム表示（軽い更新: DOM再構築なし） -------------------------------
 function frameSrc(name) { return `/frames/${encodeURIComponent(cur.unit_id)}/${name}`; }
-
 function renderFrame() {
-  if (!cur || !N) { $("#frameImg").removeAttribute("src"); return; }
+  if (!cur || !N) { $("#frameImg").removeAttribute("src"); $("#timeLabel").textContent = ""; return; }
   $("#frameImg").src = frameSrc(cur.frames[idx]);
-  $("#timeLabel").textContent = `t=${cur.times[idx].toFixed(2)}s  (${idx + 1}/${N})`;
+  $("#timeLabel").textContent = `frame ${idx}  ·  t=${cur.times[idx].toFixed(2)}s  (${idx + 1}/${N})`;
   $("#scrubber").value = idx;
-  strip.querySelectorAll("img").forEach((im, i) => im.classList.toggle("current", i === idx));
-  // 各レーンのプレイヘッドを移動（DOM再構築なし）
   document.querySelectorAll(".lane .playhead").forEach(ph => { ph.style.left = phPos(idx) + "%"; });
-  updatePreview();
 }
-const cellPos = f => (f + 0.5) / N * 100;   // フレーム中心の%位置
-const phPos = f => cellPos(f);
+const phPos = f => (f + 0.5) / N * 100;   // フレーム中心の%位置
 
-// ---- イベント一覧（状態変化時に再構築） -----------------------------------
+// ---- イベント一覧（状態変化時に再構築。ドラッグ中は絶対に再構築しない） -----
 function stateOf(id) {
   if (!(id in gt)) return { badge: "todo", label: "未注釈", text: "" };
   const sp = gt[id];
@@ -518,37 +474,48 @@ function renderEvents() {
     box.append(e); updateProgress(); return;
   }
   cur.events.forEach(ev => box.append(eventRow(ev)));
+  if (focusEventId) {
+    const inp = box.querySelector(`.erow[data-event="${focusEventId}"] .name-input`);
+    focusEventId = null;
+    if (inp) inp.focus();
+  }
   updateProgress();
+}
+
+function selectEvent(id) {
+  if (selected === id) return;
+  selected = id;
+  document.querySelectorAll(".erow").forEach(r =>
+    r.classList.toggle("selected", r.dataset.event === id));
 }
 
 function eventRow(ev) {
   const st = stateOf(ev.id);
   const row = el("div", "card erow" + (ev.id === selected ? " selected" : ""));
-  row.onclick = () => { if (selected !== ev.id) { selected = ev.id; renderEvents(); } };
+  row.dataset.event = ev.id;
+  row.addEventListener("mousedown", () => selectEvent(ev.id));  // classList操作のみ(再構築しない)
 
-  // 上段: 状態バッジ + 名前(インライン編集) + evidence/occ + 質問(インライン編集)
+  // 上段: 状態バッジ + タイトル(表示用ラベル) + VLM質問行
   const top = el("div", "erow-top");
   const badge = el("span", "badge " + st.badge); badge.textContent = st.label;
   const mainCol = el("div", "erow-main");
 
-  const nameIn = el("input", "name-input" + (ev.name ? "" : " untitled"));
-  nameIn.value = ev.name || ""; nameIn.placeholder = ev.id + "（ラベル未設定）";
-  nameIn.onclick = e => e.stopPropagation();
+  const nameIn = el("input", "name-input");
+  nameIn.value = ev.name || ""; nameIn.placeholder = "タイトル（表示用。VLMには送られない）";
   nameIn.onkeydown = e => { if (e.key === "Enter") nameIn.blur(); e.stopPropagation(); };
   nameIn.onblur = () => { if ((ev.name || "") !== nameIn.value.trim()) sopOp({ op: "upsert_event", event_id: ev.id, name: nameIn.value.trim() }); };
   mainCol.append(nameIn);
 
-  const meta = el("div", "meta-line");
-  const evd = el("span", "evidence"); evd.textContent = ev.evidence; meta.append(evd);
-  if (ev.occurrence) { const o = el("span", "occ"); o.textContent = `${ev.occurrence}回目`; meta.append(o); }
-  mainCol.append(meta);
-
+  const qrow = el("div", "qrow");
+  const qtag = el("span", "qtag"); qtag.textContent = "VLMへ送る質問"; qtag.title = "この文がフレームごとのプロンプトになる";
   const askIn = el("input", "q-input");
-  askIn.value = ev.question || ""; askIn.placeholder = "VLMへの質問（yes/no）…";
-  askIn.onclick = e => e.stopPropagation();
+  askIn.value = ev.question || ""; askIn.placeholder = "yes/noで答えられる質問文を書く（例: 作業者は袋を丸めているか？）";
   askIn.onkeydown = e => { if (e.key === "Enter") askIn.blur(); e.stopPropagation(); };
   askIn.onblur = () => { if ((ev.question || "") !== askIn.value.trim()) sopOp({ op: "upsert_event", event_id: ev.id, ask: askIn.value.trim() }); };
-  mainCol.append(askIn);
+  const idtag = el("span", "idtag");
+  idtag.textContent = ev.id + (ev.occurrence ? `（${ev.occurrence}回目)` : "");
+  qrow.append(qtag, askIn, idtag);
+  mainCol.append(qrow);
 
   top.append(badge, mainCol);
   row.append(top);
@@ -556,44 +523,52 @@ function eventRow(ev) {
   // タイムラインレーン
   row.append(buildLane(ev));
 
-  // 操作ボタン
+  // 操作: 状態テキスト + 起きていない / クリア / 削除
   const btns = el("div", "ebtns");
   const stx = el("span", "state-text grow"); stx.textContent = st.text; btns.append(stx);
-  btns.append(mkBtn("開始=ここ", "primary", e => { e.stopPropagation(); selected = ev.id; setStart(); }));
-  btns.append(mkBtn("終了=ここ", "primary", e => { e.stopPropagation(); selected = ev.id; setEnd(); }));
-  btns.append(mkBtn("起きていない", "", e => { e.stopPropagation(); selected = ev.id; setAbsent(); }));
-  btns.append(mkBtn("クリア", "ghost", e => { e.stopPropagation(); selected = ev.id; clearAnno(); }));
-  btns.append(mkBtn("🗑", "ghost", e => { e.stopPropagation(); askDelete(row, ev); }));
+  btns.append(mkBtn("起きていない", "", () => { selectEvent(ev.id); setAbsent(); }));
+  btns.append(mkBtn("クリア", "ghost", () => { selectEvent(ev.id); clearAnno(); }));
+  btns.append(mkBtn("削除", "ghost", () => askDelete(row, ev)));
   row.append(btns);
   return row;
 }
 
-function mkBtn(text, cls, on) { const b = el("button", "btn sm " + cls); b.textContent = text; b.onclick = on; return b; }
+function mkBtn(text, cls, on) {
+  const b = el("button", "btn sm " + cls); b.textContent = text;
+  b.onclick = e => { e.stopPropagation(); on(e); };
+  return b;
+}
 
 function buildLane(ev) {
   const sp = gt[ev.id];
   const lane = el("div", "lane" + (sp === null ? " absent" : ""));
   lane.dataset.event = ev.id;
-  // 目盛（フレーム境界）
-  for (let i = 1; i < N; i++) { const t = el("div", "tick"); t.style.left = (i / N * 100) + "%"; lane.append(t); }
+  for (let i = 1; i < N; i++) {
+    const t = el("div", "tick" + (i % 5 === 0 ? " major" : ""));
+    t.style.left = (i / N * 100) + "%"; lane.append(t);
+  }
   if (sp) {
     const block = el("div", "span");
-    block.style.left = (sp.start_idx / N * 100) + "%";
-    block.style.width = ((sp.end_idx - sp.start_idx + 1) / N * 100) + "%";
+    block.dataset.role = "move";                       // 本体を掴む=区間の移動
+    paintBlock(block, sp);
     const hl = el("div", "handle l"); hl.dataset.role = "l";
-    const hr = el("div", "handle r"); hr.style.left = "100%"; hr.dataset.role = "r";
+    const hr = el("div", "handle r"); hr.dataset.role = "r";
     block.append(hl, hr);
     lane.append(block);
   }
   const ph = el("div", "playhead"); ph.style.left = phPos(idx) + "%"; lane.append(ph);
-  if (sp !== null) lane.addEventListener("mousedown", e => startDrag(e, ev.id, lane));
+  lane.addEventListener("mousedown", e => startDrag(e, ev.id, lane));
   return lane;
+}
+
+function paintBlock(block, sp) {
+  block.style.left = (sp.start_idx / N * 100) + "%";
+  block.style.width = ((sp.end_idx - sp.start_idx + 1) / N * 100) + "%";
 }
 
 function updateProgress() {
   const done = cur ? cur.events.filter(e => e.id in gt).length : 0;
   const total = cur ? cur.events.length : 0;
-  // 保存チップは保存状態を出しているので、進捗はoutPath横に出さず、タイトルに反映
   document.title = `注釈 ${done}/${total} — ${cur ? cur.sop.name : ""}`;
 }
 
@@ -614,94 +589,105 @@ function setEnd() {
 function setAbsent() { if (!requireSel()) return; gt[selected] = null; saveGt(); renderEvents(); }
 function clearAnno() { if (!requireSel()) return; delete gt[selected]; saveGt(); renderEvents(); }
 
-// ---- タイムライン ドラッグ ------------------------------------------------
-function frameAt(lane, clientX) {
-  const r = lane.getBoundingClientRect();
-  return clamp(Math.floor((clientX - r.left) / r.width * N), 0, N - 1);
+// ---- タイムライン ドラッグ --------------------------------------------------
+// 重要: mousedown時にrectをキャッシュし、ドラッグ完了(mouseup)までDOMを再構築しない。
+// (以前はmousedown直後に再構築して掴んだ要素がデタッチされ、実ブラウザで一切
+//  ドラッグできないバグがあった)
+function frameAt(rect, clientX) {
+  return clamp(Math.floor((clientX - rect.left) / rect.width * N), 0, N - 1);
 }
 function startDrag(e, eventId, lane) {
   if (e.button !== 0) return;
-  selected = eventId;
+  selectEvent(eventId);
+  const rect = lane.getBoundingClientRect();
+  const f = frameAt(rect, e.clientX);
   const role = e.target.dataset ? e.target.dataset.role : null;
-  const f = frameAt(lane, e.clientX);
-  idx = f;
-  if (role === "l" || role === "r") {
-    const sp = gt[eventId];
-    drag = { mode: role, eventId, lane, anchor: role === "l" ? sp.end_idx : sp.start_idx };
+  const sp = gt[eventId];
+  if ((role === "l" || role === "r") && sp) {
+    drag = { mode: role, eventId, lane, rect, moved: false,
+             anchor: role === "l" ? sp.end_idx : sp.start_idx };
+  } else if (role === "move" && sp) {
+    drag = { mode: "move", eventId, lane, rect, moved: false,
+             grabOffset: f - sp.start_idx, len: sp.end_idx - sp.start_idx };
   } else {
-    drag = { mode: "create", eventId, lane, startFrame: f, moved: false };
+    drag = { mode: "create", eventId, lane, rect, moved: false, startFrame: f, curFrame: f };
   }
-  renderEvents(); renderFrame();
+  idx = f;
+  renderFrame();
   e.preventDefault();
 }
-function updatePreview() {
-  if (!drag || drag.mode !== "create" || !drag.moved) return;
-  const lane = drag.lane;
-  let prev = lane.querySelector(".span.preview");
-  if (!prev) { prev = el("div", "span preview"); lane.append(prev); }
-  const a = Math.min(drag.startFrame, drag.curFrame), b = Math.max(drag.startFrame, drag.curFrame);
-  prev.style.left = (a / N * 100) + "%";
-  prev.style.width = ((b - a + 1) / N * 100) + "%";
-}
+
 document.addEventListener("mousemove", e => {
   if (!drag) return;
-  const f = frameAt(drag.lane, e.clientX);
+  const f = frameAt(drag.rect, e.clientX);
   idx = f;
-  if (drag.mode === "create") { if (f !== drag.startFrame) drag.moved = true; drag.curFrame = f; }
-  else {
-    // ハンドル: アンカー(反対端)と現在フレームで区間を作り直す（DOMは即時反映）
+  if (drag.mode === "create") {
+    if (f !== drag.startFrame) drag.moved = true;
+    drag.curFrame = f;
+    if (drag.moved) {
+      let prev = drag.lane.querySelector(".span.preview");
+      if (!prev) { prev = el("div", "span preview"); drag.lane.append(prev); }
+      paintBlock(prev, { start_idx: Math.min(drag.startFrame, f), end_idx: Math.max(drag.startFrame, f) });
+    }
+  } else if (drag.mode === "move") {
+    const ns = clamp(f - drag.grabOffset, 0, N - 1 - drag.len);
+    const sp = gt[drag.eventId];
+    if (!sp || sp.start_idx !== ns) {
+      drag.moved = true;
+      gt[drag.eventId] = { start_idx: ns, end_idx: ns + drag.len };
+      const block = drag.lane.querySelector(".span:not(.preview)");
+      if (block) paintBlock(block, gt[drag.eventId]);
+    }
+  } else {                                   // l / r ハンドル
     const a = Math.min(drag.anchor, f), b = Math.max(drag.anchor, f);
-    gt[drag.eventId] = { start_idx: a, end_idx: b };
-    const block = drag.lane.querySelector(".span:not(.preview)");
-    if (block) { block.style.left = (a / N * 100) + "%"; block.style.width = ((b - a + 1) / N * 100) + "%"; }
+    const sp = gt[drag.eventId];
+    if (!sp || sp.start_idx !== a || sp.end_idx !== b) {
+      drag.moved = true;
+      gt[drag.eventId] = { start_idx: a, end_idx: b };
+      const block = drag.lane.querySelector(".span:not(.preview)");
+      if (block) paintBlock(block, gt[drag.eventId]);
+    }
   }
   renderFrame();
 });
+
 document.addEventListener("mouseup", () => {
   if (!drag) return;
   const d = drag; drag = null;
-  if (d.mode === "create") {
-    if (d.moved) {
-      const a = Math.min(d.startFrame, d.curFrame), b = Math.max(d.startFrame, d.curFrame);
-      gt[d.eventId] = { start_idx: a, end_idx: b };
-      saveGt();
-    }
-    // 動かさなければ再生位置移動だけ（idxは移動済み）
-  } else {
+  if (d.mode === "create" && d.moved) {
+    gt[d.eventId] = { start_idx: Math.min(d.startFrame, d.curFrame),
+                      end_idx: Math.max(d.startFrame, d.curFrame) };
+    saveGt();
+  } else if (d.mode !== "create" && d.moved) {
     saveGt();
   }
+  // 動かさなかった場合は再生位置の移動だけ(区間は変えない)
   renderEvents(); renderFrame();
 });
 
-// ---- イベント追加/削除 ----------------------------------------------------
-$("#addToggle").onclick = () => {
-  const f = $("#addForm"); f.classList.toggle("open");
-  if (f.classList.contains("open")) {
-    $("#newName").value = ""; $("#newAsk").value = "";
-    $("#newId").value = suggestId();
-    $("#newName").focus();
-  }
-};
-function suggestId() {
-  let n = (cur ? cur.events.length : 0) + 1, id;
+// ---- イベント追加/削除 ------------------------------------------------------
+// 追加はフォームを挟まず、その場でカードを作ってタイトルへフォーカスする。
+// IDは自動連番(ユーザーに入力させない)。タイトルと質問はカード上で直接編集。
+function nextEventId() {
   const taken = new Set(cur ? cur.events.map(e => e.id) : []);
+  let n = (cur ? cur.events.length : 0) + 1, id;
   do { id = "event_" + n++; } while (taken.has(id));
   return id;
 }
-$("#addCancel").onclick = () => $("#addForm").classList.remove("open");
-$("#addSave").onclick = async () => {
-  const id = $("#newId").value.trim();
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(id)) { toast("イベントIDは英字/アンダースコア始まりの識別子にしてください"); return; }
-  if (cur.events.some(e => e.id === id)) { toast("そのIDは既に存在します"); return; }
-  const ok = await sopOp({ op: "upsert_event", event_id: id,
-                           name: $("#newName").value.trim(), ask: $("#newAsk").value.trim() }, "イベントを追加しました");
-  if (ok) { $("#addForm").classList.remove("open"); selected = id; renderEvents(); }
+$("#addBtn").onclick = async () => {
+  if (!cur) return;
+  const id = nextEventId();
+  focusEventId = id;
+  const ok = await sopOp({ op: "upsert_event", event_id: id, name: "", ask: "" },
+                         "追加しました。タイトルと質問を入力してください");
+  if (ok) selectEvent(id); else focusEventId = null;
 };
 
 function askDelete(row, ev) {
-  row.querySelector(".confirm")?.remove();
+  const old = row.querySelector(".confirm");
+  if (old) old.remove();
   const c = el("div", "confirm");
-  const m = el("span", "msg"); m.textContent = `「${ev.name || ev.id}」を削除しますか？このイベントのGTも消えます。`;
+  const m = el("span", "msg"); m.textContent = `「${ev.name || ev.id}」を削除しますか？このイベントの注釈も消えます。`;
   const yes = el("button", "btn sm danger"); yes.textContent = "削除する";
   const no = el("button", "btn sm ghost"); no.textContent = "やめる";
   yes.onclick = async e => { e.stopPropagation(); await sopOp({ op: "delete_event", event_id: ev.id }, "削除しました"); };
@@ -709,14 +695,14 @@ function askDelete(row, ev) {
   c.append(m, no, yes); row.append(c);
 }
 
-// ---- ヒント編集（デバウンス保存） -----------------------------------------
+// ---- ヒント編集（デバウンス保存） -------------------------------------------
 $("#hint").addEventListener("input", () => {
   clearTimeout(hintTimer);
   setSave("saving", "入力中…");
   hintTimer = setTimeout(() => sopOp({ op: "set_hint", hint: $("#hint").value }), 500);
 });
 
-// ---- ナビゲーション -------------------------------------------------------
+// ---- ナビゲーション ---------------------------------------------------------
 function step(d) { idx = clamp(idx + d, 0, N - 1); renderFrame(); }
 $("#prevBtn").onclick = () => step(-1);
 $("#nextBtn").onclick = () => step(1);
@@ -725,8 +711,9 @@ $("#datasetSel").onchange = () => {
   const ds = $("#datasetSel").value; $("#unitSel")._dataset = ds; populateUnitOptions();
   const first = $("#unitSel").options[0] && $("#unitSel").options[0].value;
   if (first) loadUnit(first);
+  $("#datasetSel").blur();   // フォーカスが残ると←→キーがセレクタに食われる
 };
-$("#unitSel").onchange = () => loadUnit($("#unitSel").value);
+$("#unitSel").onchange = () => { loadUnit($("#unitSel").value); $("#unitSel").blur(); };
 
 window.addEventListener("keydown", e => {
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
@@ -737,8 +724,7 @@ window.addEventListener("keydown", e => {
     e.preventDefault();
     const ids = cur.events.map(ev => ev.id); if (!ids.length) return;
     const d = e.key === "ArrowUp" ? -1 : 1;
-    selected = ids[(ids.indexOf(selected) + d + ids.length) % ids.length];
-    renderEvents();
+    selectEvent(ids[(ids.indexOf(selected) + d + ids.length) % ids.length]);
   }
   else if (e.key === "i") setStart();
   else if (e.key === "o") setEnd();
@@ -746,7 +732,7 @@ window.addEventListener("keydown", e => {
   else if (e.key === "x") clearAnno();
 });
 
-// ---- 起動 -----------------------------------------------------------------
+// ---- 起動 -------------------------------------------------------------------
 function boot() {
   populateDatasetOptions();
   if (BOOT.initial_data) {
@@ -758,7 +744,6 @@ function boot() {
     $("#events").innerHTML = '<div class="card empty">注釈対象のunitが見つかりません。</div>';
   }
 }
-
 boot();
 </script>
 </body>
