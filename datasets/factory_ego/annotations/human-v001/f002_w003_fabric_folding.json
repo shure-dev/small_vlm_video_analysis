@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.2",
+  "sop_id": "f002_w003_fabric_folding",
+  "fps": 2.0,
+  "n_frames": 40,
+  "annotated_at": "2026-07-12T09:49:50+00:00",
+  "events": {
+    "spread_garment_on_table": [
+      {
+        "start_idx": 1,
+        "end_idx": 35
+      }
+    ],
+    "take_hanger": [
+      {
+        "start_idx": 35,
+        "end_idx": 39
+      }
+    ]
+  }
+}

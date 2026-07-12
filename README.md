@@ -47,13 +47,17 @@ sop-check detect \
 
 ```text
 event          status          t(s)  span(idx)
-ignite         detected         3.0  1-5
-flame_seen     detected         3.0  3-3
+knob           detected         3.0  1-5
+flame          detected         3.0  3-3
+pointing[1]    detected         4.5  4-5
+pointing[2]    detected        12.2  10-14
 ...
-gloves_worn    NOT_DETECTED       -
+gloves         NOT_DETECTED       -
 
-検出: 6/7 イベント
+検出: 5/6 イベント
 ```
+
+同じ動作が複数回起きた場合（この例では指差し `pointing`）は、同じイベントの区間として複数検出されます。
 
 結果をブラウザで確認するには、replay viewerを生成します。
 
@@ -63,7 +67,7 @@ sop-replay
 
 ## なぜVLMに区間の導出までさせないのか
 
-VLMには、フレームごとの視覚的な質問だけを任せます。回答列から区間を導く処理（持続時間の要求、短いノイズの橋渡し、何回目の出現かの割り当て）はルールエンジンが行います。VLMの自然文推論に時刻や順序の比較を委ねると、単純な比較すら間違えることを実験で確認しています。
+VLMには、フレームごとの視覚的な質問だけを任せます。回答列から区間を導く処理（持続時間の要求、短いノイズの橋渡し、複数回の出現の切り出し）はルールエンジンが行います。VLMの自然文推論に時刻や順序の比較を委ねると、単純な比較すら間違えることを実験で確認しています。
 
 ```mermaid
 flowchart LR
@@ -85,7 +89,7 @@ flowchart LR
 
 ### 1. SOPを定義する
 
-SOPには、VLMへの質問と、回答から検出するイベントを記述します。
+SOPには、検出したいイベントを記述します。**イベント = VLMへのフレームごとの質問**で、回答が "yes" の連続区間が出現になります。
 
 ```yaml
 sop:
@@ -93,20 +97,14 @@ sop:
   name: 点検作業
   domain_hint: "作業台を上から撮影した点検動画"
 
-questions:
+events:
   - id: knob
     ask: "手がつまみを操作しているか"
     values: ["yes", "no"]
+    min_frames: 2
   - id: pointing
     ask: "人が対象を指差しているか"
     values: ["yes", "no"]
-
-events:
-  ignite:
-    evidence: "knob==yes"
-    min_frames: 2
-  check:
-    evidence: "pointing==yes"
 ```
 
 全フィールドは[SOPフォーマット](docs/reference/sop-format.md)にあります。
@@ -191,7 +189,7 @@ sop-check eval \
 Egocentric-10Kの6工場から作業種類が満遍なく入るよう層化抽出した20 unit（各20秒・2fps・40フレーム）で、手順判定に向けたモデル間の精度比較を準備している開発用データセットです。キッチンや日常系のegocentricデータセット（Ego4Dなど）ではなく工場の一人称視点データを使うのは、産業・製造の現場作業に特化するという本リポジトリの方針のためです。
 
 - クリップ選定と暫定SOP設計には[annotated-egocentric-10k-dataset](https://github.com/fit-alessandro-berti/annotated-egocentric-10k-dataset)（LLM生成・人手検証なし）のtranscriptionを使い、GTとしては扱いません
-- 各unitのSOPは手順ステップ粒度の3〜4イベントを持ち、questionsは日本語の単文（「作業者は〜しているか？」）です。イベントは抽出フレームの目視で定義します（[イベント定義ガイド](docs/benchmark/events.md)）
+- 各unitのSOPは手順ステップ粒度の3〜4イベントを持ち、質問は日本語の単文（「作業者は〜しているか？」）です。イベントは抽出フレームの目視で定義します（[イベント定義ガイド](docs/benchmark/events.md)）
 - 現行unitは選定・アノテーション過程で閲覧されるため、すべて `dev_seen`
 - 人手ground truthは未作成のため、正式なprecision、recall、F1、tIoUは未計測
 - upstreamがgated datasetのため、抽出フレームは公開リポジトリに含めず、SHA manifestだけを追跡

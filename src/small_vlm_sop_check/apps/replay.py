@@ -34,7 +34,7 @@ from pathlib import Path
 
 import yaml
 
-from ..core.events import detect_events, frame_matches, parse_clauses
+from ..core.events import detect_events
 from ..core.sop import load_sop
 from .resources import repository_root, template_text
 
@@ -88,15 +88,14 @@ def build_frames_meta(frames_dir: Path, times: list[float],
     return images, times
 
 
-def _occurrence_spans(answers_by_idx: list[dict], evidence: str) -> list[dict]:
-    """evidence(question==value [and ...])が連続で真になる区間を、すべて列挙する。
+def _yes_spans(answers_by_idx: list[dict], event_id: str) -> list[dict]:
+    """回答が連続で "yes" になる区間を、すべて列挙する(1フレームでも拾う)。
 
-    detect_eventsは1イベント=代表1区間しか返さないが、同じ動作は動画内で何度も起こりうる。
-    ビューアでは各出現を別々の帯として見せたいので、連続区間を全部(1フレームでも)拾う。
+    detect_eventsのmin_frames/max_gapを通す前の生の出現。ビューアでは
+    短い動作も落とさず全部の帯を見せる。
     """
-    clauses = parse_clauses(evidence)
     hits = [i for i, ans in enumerate(answers_by_idx)
-            if ans and frame_matches(ans, clauses)]
+            if ans and ans.get(event_id) == "yes"]
     spans, start, prev = [], None, None
     for i in hits:
         if start is None:
@@ -136,27 +135,21 @@ def build_model_data(sop_def: dict, raw_log: list, n_frames: int) -> dict:
                    "answers": _confidence_to_answers(r.get("confidence", {}))} for r in log]
     detected = detect_events(sop_def["events"], det_frames, sop_def.get("defaults"))
 
-    asks = {q["id"]: q["ask"] for q in sop_def.get("questions", [])}
     answers_by_idx = [f["answers"] for f in frames]
     events = {}
-    for name, spec in sop_def["events"].items():
-        run = detected.get(name)
-        evidence = spec if isinstance(spec, str) else spec["evidence"]
-        question_id = evidence.split("==")[0].strip()
+    for ev_def in sop_def["events"]:
+        name = ev_def["id"]
+        runs = detected.get(name, [])
+        # 実際に一致したフレーム(max_gapの橋渡しを含まない)の全区間ぶんの和集合。tIoUに使う
+        idxs = [i for run in runs
+                for i in (run.idxs if run.idxs else range(run.start_idx, run.end_idx + 1))]
         events[name] = {
-            "evidence": evidence,
-            # 日本語ラベル(SOPのevent.name)と対応する質問文。英語idの代わりに表示に使う
-            "label": name if isinstance(spec, str) else spec.get("name", name),
-            "question": asks.get(question_id, ""),
-            "start_idx": run.start_idx if run else None,
-            "end_idx": run.end_idx if run else None,
-            "t": run.t if run else None,
-            # 実際に一致したフレーム(max_gapの橋渡しを含まない)。帯の描画とtIoUはこちらを使う
-            "idxs": list(run.idxs) if run else None,
+            "label": name,
+            "question": ev_def.get("ask", ""),
+            "idxs": idxs or None,
             # 全出現区間(同じ動作が複数回起きたら各回を別区間として出す)。
-            # ビューアはmodelが検出した全区間をそのまま見せる(短い動作も落とさない)。
-            # 代表区間のmin_frames/max_gapはdetect_eventsが別途担う。
-            "spans": _occurrence_spans(answers_by_idx, evidence),
+            # min_frames/max_gapを通した代表検出はdetect_eventsが別途担う。
+            "spans": _yes_spans(answers_by_idx, name),
         }
     return {
         "events": events,
@@ -171,11 +164,13 @@ def _ordered_model_names(names: list[str]) -> list[str]:
 
 
 def load_gt_spans(gt_path: Path | None) -> dict | None:
-    """ground_truth.json(あれば)から {event: {start_idx,end_idx}|null} を取り出す。
-    正解区間はビューア上で検出区間と重ねて表示し、tIoUも出す。"""
+    """ground_truth.json(あれば)から {event: [{start_idx,end_idx},...]|null} を取り出す。
+    旧v0.1(単一区間dict)はリストへ正規化する。正解区間はビューア上で検出区間と
+    重ねて表示し、tIoUも出す。"""
     if gt_path is None or not gt_path.exists():
         return None
-    return json.loads(gt_path.read_text(encoding="utf-8"))["events"]
+    events = json.loads(gt_path.read_text(encoding="utf-8"))["events"]
+    return {k: ([v] if isinstance(v, dict) else v) for k, v in events.items()}
 
 
 def build_unit_data(sop_def: dict, frames_dir: Path, model_rows: dict[str, list],
@@ -191,7 +186,7 @@ def build_unit_data(sop_def: dict, frames_dir: Path, model_rows: dict[str, list]
     return {
         "label": label or sop_def["sop"]["name"],
         "sop": {"id": sop_def["sop"]["id"], "name": sop_def["sop"]["name"]},
-        "questions": sop_def["questions"],
+        "questions": sop_def["events"],   # イベント=質問(id/ask/values)。表示パネル用
         "n_frames": n_frames,
         "images": images,
         "times": times,

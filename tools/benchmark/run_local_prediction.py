@@ -209,7 +209,7 @@ def main() -> None:
         from small_vlm_sop_check.inference.observe import Observer as ObserverCls
 
     first_sop = load_sop(unit_paths(units[0])["sop"])
-    observer = ObserverCls(model=model_id, questions=first_sop["questions"])
+    observer = ObserverCls(model=model_id, questions=first_sop["events"])
 
     deadline = time.monotonic() + args.max_seconds if args.max_seconds else None
     predictions: dict[str, dict] = {}
@@ -217,12 +217,12 @@ def main() -> None:
         for unit_id in units:
             paths = unit_paths(unit_id)
             sop = load_sop(paths["sop"])
-            observer.set_questions(sop["questions"])
-            print(f"[run] unit {unit_id} ({len(sop['questions'])} questions)", flush=True)
+            observer.set_questions(sop["events"])
+            print(f"[run] unit {unit_id} ({len(sop['events'])} events)", flush=True)
             rows = observe_unit(observer, sop, paths["frames"], run_dir / "raw" / f"{unit_id}.json",
                                 args.max_tokens, args.prefill, unit_fps(unit_id), deadline)
             predictions[unit_id] = normalize(args.run_id, unit_id, rows,
-                                             [q["id"] for q in sop["questions"]])
+                                             [ev["id"] for ev in sop["events"]])
     except TimeBudgetExceeded:
         done = sorted((run_dir / "raw").glob("*.json"))
         print(f"[run] --max-seconds={args.max_seconds}s に到達。rawは保存済み(raw {len(done)}ファイル)。"

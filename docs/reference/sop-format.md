@@ -1,6 +1,6 @@
 # SOPフォーマット
 
-SOPは、VLMに聞く質問と、回答から検出するイベントをYAMLで定義します。動画で実際に起きたことを記録する人手アノテーションとは分離します。
+SOPは、動画から検出したいイベントをYAMLで定義します。**イベント = VLMへのフレームごとの質問**です。各フレームで回答が `"yes"` になった連続区間が、そのイベントの出現になります。動画で実際に起きたことを記録する人手アノテーションとは分離します。
 
 ## 最小例
 
@@ -10,47 +10,41 @@ sop:
   name: コンロ始業前点検
   domain_hint: "ガスコンロの点検作業を上から撮った動画"
 
-questions:
+events:
   - id: knob
     ask: "手がコンロ手前のつまみを操作しているか"
     values: ["yes", "no"]
+    min_frames: 2
   - id: pointing
     ask: "人が対象を指差しているか"
     values: ["yes", "no"]
-
-events:
-  ignite:
-    evidence: "knob==yes"
-    min_frames: 2
-  point1:
-    evidence: "pointing==yes"
-    occurrence: 1
 ```
 
-YAML 1.1の処理系では裸の `yes` / `no` が真偽値として解釈されることがあるため、値はクォートします。
+## フィールド
 
-## occurrence
+| キー | 必須 | 意味 |
+|---|---|---|
+| `sop.id` / `sop.name` | ✓ | unitと同名のid / 表示名 |
+| `sop.domain_hint` | | 撮影状況の説明。全フレームのプロンプト冒頭に入る |
+| `events[].id` | ✓ | イベントid（英数字/`_`）。回答ログ・GT・検出結果すべてのキー |
+| `events[].ask` | ✓ | VLMへ送る質問。yes/noで答えられる単文にする |
+| `events[].values` | | 回答語彙（既定 `["yes", "no"]`）。**必ずクォートする**（裸のyes/noはYAML 1.1でブール値になる） |
+| `events[].min_frames` | | 検出に必要な最小連続フレーム数（既定は `defaults.min_frames`、無ければ2） |
+| `defaults.min_frames` / `defaults.max_gap_frames` | | 全イベント共通の既定値 |
 
-同じ質問が動画内で複数回 `yes` になる場合に、「何回目の動作か」を指定します。
+## 同じ動作が複数回起こる場合
 
-```yaml
-events:
-  point1:
-    evidence: "pointing==yes"
-    occurrence: 1
-  point2:
-    evidence: "pointing==yes"
-    occurrence: 2
+何も特別なことは要りません。検出は各イベントの**出現区間のリスト**を返し、人手アノテーション（`ground_truth.json`）も同じイベントidに**区間のリスト**を記録します。
+
+```json
+"events": {
+  "pointing": [{"start_idx": 5, "end_idx": 5}, {"start_idx": 12, "end_idx": 13}],
+  "gloves": null
+}
 ```
 
-複数回の動作には明示的な `occurrence` を推奨します。省略すると、イベントの宣言順が割り当てに影響します。
+評価はGT・検出の両方を時系列順に並べ、k番目どうしを突き合わせます（余ったGT区間=見逃し、余った検出区間=誤検出）。
 
-## イベント検出の調整
+## 旧v1形式からの変更
 
-| フィールド | 用途 |
-|---|---|
-| `min_frames` | Nフレーム以上続いた回答だけをイベントとして扱う |
-| `max_gap_frames` | 短い回答の揺れをまたいで区間を接続する |
-| `defaults` | 複数イベントの既定値をまとめて指定する |
-
-動画ごとにイベント語彙がどこで定義されるかは、[動画ごとのイベント定義](../benchmark/events.md)を参照してください。実例は [`datasets/konro_inspection/sops/konro_inspection/`](../../datasets/konro_inspection/sops/konro_inspection/) にあります。
+旧形式（`questions:` と `events:` の2層 + `evidence` 式 + `occurrence`）は廃止しました。イベントが質問を直接持ちます。複数回の出現は `occurrence` 付きの別イベントではなく、上記のとおり同じイベントの区間リストで扱います。旧形式のSOPは `load_sop` が明確なエラーで拒否します。

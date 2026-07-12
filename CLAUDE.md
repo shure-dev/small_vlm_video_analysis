@@ -12,7 +12,7 @@
 - `runs/` — Fable・Opus・Qwenを対等に扱う不変のprediction run。raw、正規化予測、入力lockを保持
 - `evaluations/` — 人手GT revisionとprediction runを入力にする評価run（Factory Egoは人手GT未作成のため現在は空）
 - `reports/` — 比較結果。人手GTがない間は一致率等を「精度」と表記しない
-- `tools/benchmark/` — unitの層化サンプリング（`sample_units.py`・決定論的・追記型）、gated媒体の再構成（`fetch_factory_ego.py`・既定dry-run）、整合性検証（`validate.py`）、ローカルモデルのprediction run作成（`run_local_prediction.py`）、referenceとの区間tIoU予備比較（`reference_tiou.py`）
+- `tools/benchmark/` — unitの層化サンプリング（`sample_units.py`・決定論的・追記型）、gated媒体の再構成（`fetch_factory_ego.py`・既定dry-run）、整合性検証（`validate.py`）、SOP編集後のlock追随（`refresh_manifest_lock.py`）、ローカルモデルのprediction run作成（`run_local_prediction.py`）、referenceとの区間tIoU予備比較（`reference_tiou.py`）
 - `tools/quality/` — Markdown link等のrepository品質検査。ユーザー向け機能は置かない
 - `schemas/benchmark/v1/` — unit・run・prediction・splitのversioned JSON Schema
 - `docs/` — 設計・評価ポリシー・運用・ADRの正本。READMEには概要とクイックスタートだけを置く
@@ -48,8 +48,9 @@ sop-check run --sop datasets/konro_inspection/sops/konro_inspection/konro_inspec
 
 ## 設計原則（変更しないこと）
 
-- **回答と区間導出の分離**: VLMは質問（questions）にフレーム単位で答えるだけ（Phase 1）。回答列からイベント区間を導出するのは決定論的なルールエンジン（Phase 2）。区間や時刻の比較をVLMの自然文推論に委ねない——検証で単純な時刻比較すら間違えることを確認済み。日本語ドキュメントでこの工程を「観察」と呼ばない（わかりにくいため「（フレームごとの質問への）回答」「回答収集」と書く。回答ログ＝`answer_log.json`）。
-- **用語**: `questions`（VLMへの質問）/ `answers`・`answer_log.json`（回答）/ `events` / `ground_truth.json`（人手の正解区間）。旧称「cue」は廃止済みなので復活させない。
+- **回答と区間導出の分離**: VLMはイベント（=フレームごとの質問）にフレーム単位で答えるだけ（Phase 1）。回答列からイベント区間を導出するのは決定論的なルールエンジン（Phase 2）。区間や時刻の比較をVLMの自然文推論に委ねない——検証で単純な時刻比較すら間違えることを確認済み。日本語ドキュメントでこの工程を「観察」と呼ばない（わかりにくいため「（フレームごとの質問への）回答」「回答収集」と書く。回答ログ＝`answer_log.json`）。
+- **イベント = 質問（SOP v2・フラット）**: SOPの `events` は `{id, ask, values, min_frames?}` のリスト。旧v1の questions/events 2層・`evidence`式・`occurrence`・イベント表示名(name)は廃止済みなので復活させない。同じ動作が複数回起こる場合は、同じイベントidに区間を複数持たせる（GT v0.2 は `{id: [区間,...] | null}`。キー無し=未注釈）。評価は時系列順にk番目どうしを突き合わせる。
+- **用語**: `events`（イベント=VLMへの質問）/ `answers`・`answer_log.json`（回答）/ `ground_truth.json`（人手の正解区間）。旧称「cue」「questions」は廃止済みなので復活させない。
 - **アノテーションは事実（いつ何が起きたか＝区間）だけを記録する**。「べき」を注釈に持ち込まない。一次指標はイベント区間の検出状態とtIoUで、フレーム一致は診断用（`src/small_vlm_sop_check/core/evaluate.py` 冒頭のdocstring参照）。境界±数フレームのズレは注釈側でなく tIoU しきい値側で吸収する。
 - **Factory Egoのモデル出力をground truthへ昇格しない**。Fable・Opus・Qwenは全て`runs/`のprediction。人手GTができるまではformal accuracyをnullのままにし、評価値はprediction runへ追記せず別evaluation runを作る。
 - **splitはfactory/worker単位**。現行unitは選定・アノテーション過程で閲覧されるため`dev_seen`固定でtestへ昇格させない。真のtestは未閲覧クリップ＋人手GTで作る。
@@ -57,7 +58,7 @@ sop-check run --sop datasets/konro_inspection/sops/konro_inspection/konro_inspec
 ## ハマりどころ
 
 - SOP YAMLの `values: ["yes", "no"]` はクォート必須。裸の yes/no はYAML 1.1でブール値になる。
-- `occurrence` 未指定のeventはYAML宣言順に早い者勝ちで区間を取るため、宣言順を変えると結果が変わる。時系列N番目に固定したければ `occurrence: N`。
+- annotatorでSOPを編集したら `python3 tools/benchmark/refresh_manifest_lock.py --apply` でdataset側lockのSOPハッシュを追随させる（runs/のinputs.lockは歴史記録なので触らない）。
 - mlx-vlm実行中に稀にMetal GPU Hangが起きる。回答ログは1フレームごとに逐次保存しているので、再実行すれば途中から再開できる。
 - fpsを上げると精度が上がるとは限らない（短いノイズが単独検出として顕在化し、検出結果が変わった実測あり）。既定の1fpsを基準にする。
 
@@ -77,4 +78,4 @@ sop-check run --sop datasets/konro_inspection/sops/konro_inspection/konro_inspec
 
 ## 検証のしかた
 
-変更したら必ず `pytest` と上記の `detect` コマンドを実行し、検出が「6/7 イベント」（`gloves_worn` のみ未検出）のままであることを確認する。
+変更したら必ず `pytest` と上記の `detect` コマンドを実行し、検出が「5/6 イベント」（`gloves` のみ未検出。`pointing` は2区間）のままであることを確認する。

@@ -25,9 +25,9 @@ sop-annotate --sop path/to/sop.yaml --frames-dir path/to/frames --fps 2.0 \
 | フレームビューア | 大きなフレーム画像と再生バー（スライダー・◀▶・←→キーでシーク） |
 | ヒント欄 | `domain_hint`（撮影状況＝VLMにも渡すプロンプト）の編集欄。500msデバウンスで自動保存 |
 | 参考情報 | factory_ego など上流のtranscript/活動列を読み取り専用で表示（GTではない） |
-| イベントカード | タイトル（表示用）と「VLMへ送る質問」を直接編集。下に同一時間軸のタイムラインレーン |
+| イベントカード | 質問文（=VLMプロンプト）が主役。id と併せてカード上で直接編集。下にタイムラインレーン |
 
-イベントカードでは、**どちらがVLMプロンプトに送られるか**を常に明示します: タイトルは表示用ラベル（プロンプトには送られない）、「VLMへ送る質問」タグ付きの文がフレームごとのプロンプトになります。
+イベント = VLMへのフレームごとの質問です。カードの太字テキストがそのままプロンプトの質問文になります（表示用の別タイトルは持ちません）。
 
 ## 区間の付け方（タイムライン直接操作）
 
@@ -35,42 +35,44 @@ sop-annotate --sop path/to/sop.yaml --frames-dir path/to/frames --fps 2.0 \
 - 区間の**本体を掴んでドラッグ**すると、長さを保ったまま移動できる。
 - **両端の白いつまみをドラッグ**すると開始/終了を伸縮できる。
 - レーンの空白を**単クリック**すると再生位置だけ動く（区間は変えない）。
-- キーボード <kbd>i</kbd>/<kbd>o</kbd> で現在フレームを開始/終了にもできる。
+- キーボード <kbd>i</kbd>=現在フレームから新しい区間を開始、<kbd>o</kbd>=直近の区間の終了を現在フレームに。
 - 起きなかったイベントは **起きていない**（<kbd>n</kbd>）で `null` を記録、**クリア**（<kbd>x</kbd>）で未注釈に戻す。
 - <kbd>←</kbd><kbd>→</kbd>=フレーム移動、<kbd>↑</kbd><kbd>↓</kbd>=イベント選択。
 
-`occurrence` 付きイベント（1回目/2回目など）は、それぞれの出現を別イベントとして注釈します。
+**同じ動作が複数回起きたら、同じレーンにそのまま複数の区間を引きます。**GTには同じイベントidの区間リストとして時系列順に保存され（`{id: [区間,...] | null}`）、評価は k番目どうしを突き合わせます。
 
 実装上の不変条件: **ドラッグ中はDOMを再構築しない**（mousedown時にレーンのrectをキャッシュし、mouseupで確定・再描画する）。ドラッグ開始直後に再構築すると掴んだ要素がデタッチされ、実ブラウザで一切ドラッグできなくなる。
 
 ## イベント・SOPの編集
 
-イベントの追加・削除、タイトル・質問文・撮影状況ヒントの編集は、その場でSOP YAMLへ検証付きに書き戻されます（`core.sop.save_sop`。`'yes'/'no'` は自動クォートされYAML 1.1のブール化は起きません）。
+イベントの追加・削除、質問文・ID・撮影状況ヒントの編集は、その場でSOP YAMLへ検証付きに書き戻されます（`core.sop.save_sop`。`'yes'/'no'` は自動クォートされYAML 1.1のブール化は起きません）。
 
-- **追加**: 「＋ イベントを追加」で空のカードが即増え、タイトルにフォーカスが移る（入力フォームは挟まない）。イベントIDは自動連番（`event_N`）で、質問（yes/no）を同IDで用意し `evidence: <id>==yes` を張る。
-- **削除**: カード内のインライン確認のうえ削除。そのイベントだけが参照していた質問と、`ground_truth.json` 内の同キーもカスケード削除して不整合を残さない。
-- **編集**: タイトル/質問文はカード上で直接編集し、フォーカスを外すと保存。イベントIDは自動生成で、作成後リネームしない（runsのprediction・evidence・GTキーとの整合が壊れるため）。
+- **追加**: 「＋ イベントを追加」で空のカードが即増え、質問入力にフォーカスが移る（入力フォームは挟まない）。イベントIDは自動連番（`event_N`）で、あとからカード上で変更できる。
+- **削除**: カード内のインライン確認のうえ削除。`ground_truth.json` 内の同キーもカスケード削除して不整合を残さない。
+- **編集**: 質問文・IDはカード上で直接編集し、フォーカスを外すと保存。ID変更は `ground_truth.json` のキーにも追随する（既存prediction runの回答キーは旧IDのまま残る=runは不変の歴史記録）。
+- **注意**: SOPを編集したら `python3 tools/benchmark/refresh_manifest_lock.py --apply` でdataset側lockのSOPハッシュを追随させる（`validate.py` が照合する）。
 
 ## データモデル
 
-`ground_truth.json`（スキーマ v0.1）は3状態を区別します。詳細は [評価の入力契約](../benchmark/data-contract.md) を参照。
+`ground_truth.json`（スキーマ v0.2）は3状態を区別します。詳細は [評価の入力契約](../benchmark/data-contract.md) を参照。
 
 ```json
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "sop_id": "konro_inspection",
   "fps": 1.0,
   "n_frames": 16,
   "events": {
-    "ignite": {"start_idx": 1, "end_idx": 4},
-    "gloves_worn": null
+    "pointing": [{"start_idx": 5, "end_idx": 5}, {"start_idx": 12, "end_idx": 13}],
+    "gloves": null
   }
 }
 ```
 
-- `{start_idx, end_idx}`（両端含む・フレームインデックス。秒は `t = idx / fps`）= 起きた区間
+- 区間のリスト（各区間は `{start_idx, end_idx}`・両端含むフレームインデックス。秒は `t = idx / fps`。複数回起きたら複数区間・時系列順）= 起きた
 - `null` = 「起きていない」と明示注釈
 - キーが無い = 未注釈（評価から除外）
+- 旧v0.1（値が単一の区間dict）も読み込み時にリストへ正規化して受け付ける
 
 ## HTTP API（内部）
 
@@ -82,10 +84,10 @@ UIはこのローカルAPIを叩きます。書き込みは `threading.Lock` で
 | `GET /api/unit/<unit_id>` | 1 unitのページデータ（SOP・フレーム・保存済み注釈・参考情報） |
 | `GET /frames/<unit_id>/<name>` | フレーム画像（既知の連番のみ配信＝パス走査対策） |
 | `POST /api/gt` | 区間の保存（`{unit_id, events}`） |
-| `POST /api/sop` | SOP編集（`op`: `set_hint` / `upsert_event` / `delete_event`） |
+| `POST /api/sop` | SOP編集（`op`: `set_hint` / `upsert_event` / `rename_event` / `delete_event`） |
 
 ## 実装
 
 - サーバ・台帳: `src/small_vlm_sop_check/apps/annotator.py`、`src/small_vlm_sop_check/apps/catalog.py`
-- SOP読み書き・編集: `src/small_vlm_sop_check/core/sop.py`（`save_sop` / `set_domain_hint` / `upsert_event` / `delete_event`）
+- SOP読み書き・編集: `src/small_vlm_sop_check/core/sop.py`（`save_sop` / `set_domain_hint` / `upsert_event` / `rename_event` / `delete_event`）
 - 画面: `src/small_vlm_sop_check/apps/templates/annotator.html`（デザイントークン＋素のJS。フレームワーク不使用）

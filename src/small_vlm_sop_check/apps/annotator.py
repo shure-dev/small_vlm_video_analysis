@@ -20,7 +20,8 @@
                --fps 2.0 --out path/to/ground_truth.json
 
 前提: フレームは extract.py が吐く連番jpg(f000.jpg, ...)で、t = idx / fps とみなす。
-occurrenceを持つイベント(1回目/2回目など)は全出現をそれぞれ注釈すること。
+同じ動作が動画内で複数回起こる場合は、同じレーンに区間を複数引くだけでよい
+(GTには同じイベントidの区間リストとして時系列順に保存される)。
 """
 from __future__ import annotations
 import argparse
@@ -33,8 +34,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
-from ..core.events import parse_clauses
-from ..core.sop import (delete_event, load_sop, save_sop, set_domain_hint, upsert_event)
+from ..core.sop import (delete_event, load_sop, rename_event, save_sop,
+                        set_domain_hint, upsert_event)
 from . import catalog
 from .resources import repository_root, template_text
 
@@ -60,21 +61,9 @@ def display_path(p: Path) -> str:
 # ---------------------------------------------------------------------------
 
 def _events_view(sop_def: dict) -> list[dict]:
-    """events定義を、UIが必要とする形(id・日本語名・質問文・min_frames等)に展開する。"""
-    asks = {q["id"]: q.get("ask", "") for q in sop_def.get("questions", [])}
-    view = []
-    for name, spec in sop_def["events"].items():
-        evidence = spec if isinstance(spec, str) else spec["evidence"]
-        occurrence = None if isinstance(spec, str) else spec.get("occurrence")
-        min_frames = None if isinstance(spec, str) else spec.get("min_frames")
-        label = name if isinstance(spec, str) else spec.get("name", "")
-        qid = parse_clauses(evidence)[0][0]
-        view.append({
-            "id": name, "name": label, "evidence": evidence,
-            "occurrence": occurrence, "min_frames": min_frames,
-            "question_id": qid, "question": asks.get(qid, ""),
-        })
-    return view
+    """events定義を、UIが必要とする形(id・質問文・min_frames)に展開する。"""
+    return [{"id": ev["id"], "question": ev.get("ask", ""),
+             "min_frames": ev.get("min_frames")} for ev in sop_def["events"]]
 
 
 def _reference_info(meta_path: Path | None) -> dict | None:
@@ -101,6 +90,8 @@ def build_unit_data(unit: catalog.Unit) -> dict:
     gt_events = {}
     if unit.gt_path.exists():
         gt_events = json.loads(unit.gt_path.read_text(encoding="utf-8")).get("events", {})
+        # 旧v0.1(単一区間dict)は区間リストへ正規化してUIに渡す
+        gt_events = {k: ([v] if isinstance(v, dict) else v) for k, v in gt_events.items()}
     return {
         "unit_id": unit.unit_id,
         "dataset": unit.dataset,
@@ -125,23 +116,32 @@ def build_unit_data(unit: catalog.Unit) -> dict:
 # ---------------------------------------------------------------------------
 
 def validate_gt_events(sop_def: dict, frame_count: int, events: dict) -> None:
-    """GTのeventsが、SOPの既知イベントかつ有効な区間(0<=s<=e<n)かを確認する。"""
-    known = set(sop_def["events"])
-    for name, span in events.items():
+    """GTのeventsが、SOPの既知イベントかつ有効な区間リスト(各区間 0<=s<=e<n)かを確認する。
+
+    値は null(起きていない) または 区間のリスト。同じイベントが複数回起きたら複数区間。
+    """
+    known = {ev["id"] for ev in sop_def["events"]}
+    for name, spans in events.items():
         if name not in known:
             raise ValueError(f"SOPに無いイベント: {name}")
-        if span is None:
+        if spans is None:
             continue
-        s, e = span.get("start_idx"), span.get("end_idx")
-        if not (isinstance(s, int) and isinstance(e, int) and 0 <= s <= e < frame_count):
-            raise ValueError(f"{name} の区間が不正: {span}")
+        if not isinstance(spans, list) or not spans:
+            raise ValueError(f"{name} は区間のリストかnullで指定します: {spans!r}")
+        for span in spans:
+            s, e = span.get("start_idx"), span.get("end_idx")
+            if not (isinstance(s, int) and isinstance(e, int) and 0 <= s <= e < frame_count):
+                raise ValueError(f"{name} の区間が不正: {span}")
 
 
 def save_gt(unit: catalog.Unit, sop_def: dict, events: dict) -> None:
+    # 区間は常に時系列順で保存する(k番目=k回目)
+    events = {k: (sorted(v, key=lambda sp: sp["start_idx"]) if isinstance(v, list) else v)
+              for k, v in events.items()}
     n = len(unit.frame_files())
     validate_gt_events(sop_def, n, events)
     doc = {
-        "schema_version": "0.1",
+        "schema_version": "0.2",
         "sop_id": sop_def["sop"]["id"],
         "fps": unit.fps,
         "n_frames": n,
@@ -162,6 +162,17 @@ def _drop_gt_key(unit: catalog.Unit, sop_def: dict, event_id: str) -> None:
     if event_id in doc.get("events", {}):
         doc["events"].pop(event_id)
         save_gt(unit, sop_def, doc["events"])
+
+
+def _rename_gt_key(unit: catalog.Unit, sop_def: dict, old_id: str, new_id: str) -> None:
+    """イベントidの変更にGT側のキーも追随させる(注釈を失わない)。"""
+    if not unit.gt_path.exists():
+        return
+    doc = json.loads(unit.gt_path.read_text(encoding="utf-8"))
+    events = doc.get("events", {})
+    if old_id in events:
+        events = {new_id if k == old_id else k: v for k, v in events.items()}
+        save_gt(unit, sop_def, events)
 
 
 # ---------------------------------------------------------------------------
@@ -277,12 +288,18 @@ class Handler(BaseHTTPRequestHandler):
                 set_domain_hint(sop_def, payload.get("hint", ""))
             elif op == "upsert_event":
                 upsert_event(sop_def, payload["event_id"],
-                             name=payload.get("name"), ask=payload.get("ask"),
+                             ask=payload.get("ask"),
                              min_frames=payload.get("min_frames"))
             elif op == "delete_event":
                 if delete_event(sop_def, payload["event_id"]):
                     save_sop(unit.sop_path, sop_def)
                     _drop_gt_key(unit, sop_def, payload["event_id"])
+                self._send_json({"ok": True, "unit": build_unit_data(unit)})
+                return
+            elif op == "rename_event":
+                if rename_event(sop_def, payload["event_id"], payload["new_id"]):
+                    save_sop(unit.sop_path, sop_def)
+                    _rename_gt_key(unit, sop_def, payload["event_id"], payload["new_id"])
                 self._send_json({"ok": True, "unit": build_unit_data(unit)})
                 return
             else:

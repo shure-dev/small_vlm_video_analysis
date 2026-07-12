@@ -170,32 +170,25 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 .erow-top { display: flex; align-items: flex-start; gap: var(--s2); }
 .erow-top .badge { margin-top: 5px; }
 .erow-main { flex: 1; min-width: 0; }
-.name-input {
-  font-size: var(--fs-lg); font-weight: 600; width: 100%;
-  border: 1px solid transparent; border-radius: var(--r1);
-  padding: 2px var(--s2); background: transparent; color: var(--text); font-family: inherit;
-}
-.name-input:hover { border-color: var(--border); }
-.name-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
-.name-input::placeholder { color: var(--text-faint); font-weight: 400; }
-
-/* 「VLMへ送る質問」行: どちらがプロンプトに行くかを常に明示する */
-.qrow { display: flex; align-items: center; gap: var(--s2); margin-top: var(--s2); }
-.qtag {
-  font-size: var(--fs-xs); color: var(--accent); background: var(--accent-weak);
-  padding: 1px var(--s2); border-radius: var(--pill); white-space: nowrap; font-weight: 600;
-}
+/* 質問行: 質問文(=VLMプロンプト)がカードの主役 */
+.qrow { display: flex; align-items: center; gap: var(--s2); }
 .q-input {
-  flex: 1; min-width: 0; font-size: var(--fs-sm); color: var(--text);
+  flex: 1; min-width: 0; font-size: var(--fs-lg); font-weight: 600; color: var(--text);
   border: 1px solid transparent; border-radius: var(--r1); padding: 3px var(--s2);
   background: transparent; font-family: inherit;
 }
 .q-input:hover { border-color: var(--border); }
 .q-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
-.q-input::placeholder { color: var(--text-faint); }
-.idtag { font-size: var(--fs-xs); color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
+.q-input::placeholder { color: var(--text-faint); font-weight: 400; font-size: var(--fs-md); }
+.id-input {
+  font-size: var(--fs-xs); color: var(--text-faint); font-family: var(--mono);
+  border: 1px solid transparent; border-radius: var(--r1); padding: 1px var(--s1);
+  background: transparent; text-align: right;
+}
+.id-input:hover { border-color: var(--border); color: var(--text-muted); }
+.id-input:focus { outline: none; border-color: var(--accent); background: var(--surface); color: var(--text); }
 
-/* timeline lane: 全イベント同じ時間軸。ドラッグで区間を引き、掴んで動かす */
+/* timeline lane: ドラッグで区間を引く。複数回起きるなら区間を複数引く */
 .lane {
   position: relative; height: 34px; margin-top: var(--s3);
   background: var(--surface-2); border-radius: var(--r1);
@@ -225,7 +218,6 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 
 .ebtns { display: flex; gap: var(--s2); margin-top: var(--s3); align-items: center; flex-wrap: wrap; }
 .ebtns .grow { flex: 1; }
-.state-text { font-size: var(--fs-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 /* inline delete confirm */
 .confirm { display: flex; align-items: center; gap: var(--s2); background: var(--danger-weak); padding: var(--s2) var(--s3); border-radius: var(--r1); margin-top: var(--s3); }
@@ -277,9 +269,10 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
         <h2 class="section">操作</h2>
         タイムラインを<b>ドラッグ</b>して区間を引く。区間は<b>本体を掴んで移動</b>、
         <b>両端の白いつまみで伸縮</b>できる。空いた所のクリックは再生位置の移動だけ。<br>
+        <b>同じ動作が複数回起きたら、同じレーンにそのまま複数の区間を引く。</b><br>
         キーボード: <kbd>←</kbd><kbd>→</kbd>=フレーム移動、<kbd>↑</kbd><kbd>↓</kbd>=イベント選択、
-        <kbd>i</kbd>=開始をここに <kbd>o</kbd>=終了をここに、<kbd>n</kbd>=起きていない、<kbd>x</kbd>=クリア。
-        <b>すべて自動保存。</b>
+        <kbd>i</kbd>=ここから新しい区間 <kbd>o</kbd>=直近の区間の終了をここに、
+        <kbd>n</kbd>=起きていない、<kbd>x</kbd>=クリア。<b>すべて自動保存。</b>
       </div>
     </section>
 
@@ -299,19 +292,23 @@ main { display: flex; gap: var(--s5); padding: var(--s5); max-width: 1320px; mar
 const BOOT = "__ANNOTATOR_BOOT__";
 
 // ---- 状態 -----------------------------------------------------------------
-let units = BOOT.units || [];          // [{dataset,unit_id,fps,has_frames,has_gt}]
-let cur = null;                        // 現在のunitの完全データ
-let gt = {};                           // {event_id: {start_idx,end_idx} | null}。キー無し=未注釈
-let N = 0;                             // フレーム数
-let idx = 0;                           // 再生位置
+// gt[id] = null(起きていない) | [{start_idx,end_idx}, ...](起きた区間・時系列順)。
+// キーが無い = 未注釈。
+let units = BOOT.units || [];
+let cur = null;
+let gt = {};
+let N = 0;
+let idx = 0;
 let selected = null;                   // 選択中のイベントid
 let drag = null;                       // ドラッグ状態(mousedown時にrectをキャッシュ)
-let hintTimer = null;                  // ヒント編集のデバウンス
-let focusEventId = null;               // 追加直後にタイトルへフォーカスする対象
+let hintTimer = null;
+let focusEventId = null;               // 追加直後に質問入力へフォーカスする対象
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const spansOf = id => Array.isArray(gt[id]) ? gt[id] : [];
+const sortSpans = spans => spans.slice().sort((a, b) => a.start_idx - b.start_idx);
 
 // ---- API ------------------------------------------------------------------
 async function api(method, path, body) {
@@ -353,7 +350,7 @@ async function saveGt() {
   }
 }
 
-// ---- SOP編集（ヒント・イベント追加/削除/名称/質問） ------------------------
+// ---- SOP編集（ヒント・イベント追加/削除/質問/ID） --------------------------
 async function sopOp(payload, okMsg) {
   setSave("saving", "保存中…");
   try {
@@ -460,11 +457,10 @@ const phPos = f => (f + 0.5) / N * 100;   // フレーム中心の%位置
 
 // ---- イベント一覧（状態変化時に再構築。ドラッグ中は絶対に再構築しない） -----
 function stateOf(id) {
-  if (!(id in gt)) return { badge: "todo", label: "未注釈", text: "" };
-  const sp = gt[id];
-  if (sp === null) return { badge: "absent", label: "起きていない", text: "" };
-  return { badge: "done", label: "注釈済み",
-           text: `frame ${sp.start_idx}–${sp.end_idx}　t=${cur.times[sp.start_idx]}–${cur.times[sp.end_idx]}s` };
+  if (!(id in gt)) return { badge: "todo", label: "未注釈" };
+  if (gt[id] === null) return { badge: "absent", label: "起きていない" };
+  const n = gt[id].length;
+  return { badge: "done", label: n > 1 ? `注釈済み ×${n}回` : "注釈済み" };
 }
 
 function renderEvents() {
@@ -473,9 +469,9 @@ function renderEvents() {
     const e = el("div", "card empty"); e.textContent = "イベントがありません。「＋ イベントを追加」から作成してください。";
     box.append(e); updateProgress(); return;
   }
-  cur.events.forEach(ev => box.append(eventRow(ev)));
+  cur.events.forEach(ev => box.append(eventCard(ev)));
   if (focusEventId) {
-    const inp = box.querySelector(`.erow[data-event="${focusEventId}"] .name-input`);
+    const inp = box.querySelector(`.erow[data-event="${focusEventId}"] .q-input`);
     focusEventId = null;
     if (inp) inp.focus();
   }
@@ -483,51 +479,71 @@ function renderEvents() {
 }
 
 function selectEvent(id) {
-  if (selected === id) return;
   selected = id;
   document.querySelectorAll(".erow").forEach(r =>
     r.classList.toggle("selected", r.dataset.event === id));
 }
 
-function eventRow(ev) {
+function eventCard(ev) {
   const st = stateOf(ev.id);
   const row = el("div", "card erow" + (ev.id === selected ? " selected" : ""));
   row.dataset.event = ev.id;
   row.addEventListener("mousedown", () => selectEvent(ev.id));  // classList操作のみ(再構築しない)
 
-  // 上段: 状態バッジ + タイトル(表示用ラベル) + VLM質問行
+  // 上段: 状態バッジ + 質問(=VLMプロンプト。カードの主役) + id
   const top = el("div", "erow-top");
   const badge = el("span", "badge " + st.badge); badge.textContent = st.label;
   const mainCol = el("div", "erow-main");
 
-  const nameIn = el("input", "name-input");
-  nameIn.value = ev.name || ""; nameIn.placeholder = "タイトル（表示用。VLMには送られない）";
-  nameIn.onkeydown = e => { if (e.key === "Enter") nameIn.blur(); e.stopPropagation(); };
-  nameIn.onblur = () => { if ((ev.name || "") !== nameIn.value.trim()) sopOp({ op: "upsert_event", event_id: ev.id, name: nameIn.value.trim() }); };
-  mainCol.append(nameIn);
-
   const qrow = el("div", "qrow");
-  const qtag = el("span", "qtag"); qtag.textContent = "VLMへ送る質問"; qtag.title = "この文がフレームごとのプロンプトになる";
   const askIn = el("input", "q-input");
-  askIn.value = ev.question || ""; askIn.placeholder = "yes/noで答えられる質問文を書く（例: 作業者は袋を丸めているか？）";
-  askIn.onkeydown = e => { if (e.key === "Enter") askIn.blur(); e.stopPropagation(); };
+  askIn.value = ev.question || "";
+  askIn.placeholder = "VLMへ送る質問（yes/noで答えられる文。例: 作業者は袋を丸めているか？）";
+  askIn.title = "この文がフレームごとのVLMプロンプトになる";
+  askIn.onkeydown = e => { if (e.key === "Enter" && !e.isComposing) askIn.blur(); e.stopPropagation(); };
   askIn.onblur = () => { if ((ev.question || "") !== askIn.value.trim()) sopOp({ op: "upsert_event", event_id: ev.id, ask: askIn.value.trim() }); };
-  const idtag = el("span", "idtag");
-  idtag.textContent = ev.id + (ev.occurrence ? `（${ev.occurrence}回目)` : "");
-  qrow.append(qtag, askIn, idtag);
+  const idIn = el("input", "id-input");
+  idIn.value = ev.id; idIn.title = "イベントid(英数字/_)。変更すると注釈キーも追随する";
+  idIn.size = Math.max(6, ev.id.length);
+  idIn.onkeydown = e => { if (e.key === "Enter" && !e.isComposing) idIn.blur(); e.stopPropagation(); };
+  idIn.onblur = async () => {
+    const v = idIn.value.trim();
+    if (v === ev.id) return;
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(v)) { toast("idは英字/_で始まる識別子にしてください"); idIn.value = ev.id; return; }
+    if (selected === ev.id) selected = v;
+    const ok = await sopOp({ op: "rename_event", event_id: ev.id, new_id: v }, "idを変更しました");
+    if (!ok) { if (selected === v) selected = ev.id; idIn.value = ev.id; }
+  };
+  qrow.append(askIn, idIn);
   mainCol.append(qrow);
 
   top.append(badge, mainCol);
   row.append(top);
 
-  // タイムラインレーン
+  // タイムラインレーン(区間は複数持てる)
   row.append(buildLane(ev));
 
-  // 操作: 状態テキスト + 起きていない / クリア / 削除
+  // 区間ごとのチップ + 操作
   const btns = el("div", "ebtns");
-  const stx = el("span", "state-text grow"); stx.textContent = st.text; btns.append(stx);
-  btns.append(mkBtn("起きていない", "", () => { selectEvent(ev.id); setAbsent(); }));
-  btns.append(mkBtn("クリア", "ghost", () => { selectEvent(ev.id); clearAnno(); }));
+  spansOf(ev.id).forEach((sp, i, arr) => {
+    const c = el("span", "chip");
+    const lbl = arr.length > 1 ? `${i + 1}回目: ` : "";
+    c.append(document.createTextNode(
+      `${lbl}frame ${sp.start_idx}–${sp.end_idx} (t=${cur.times[sp.start_idx]}–${cur.times[sp.end_idx]}s)`));
+    const x = el("button", "btn sm ghost"); x.textContent = "×"; x.title = "この区間を消す";
+    x.onclick = e => {
+      e.stopPropagation();
+      const spans = gt[ev.id];
+      spans.splice(i, 1);
+      if (!spans.length) delete gt[ev.id];   // 区間ゼロ = 未注釈へ戻す
+      saveGt(); renderEvents();
+    };
+    c.append(x);
+    btns.append(c);
+  });
+  const grow = el("span", "grow"); btns.append(grow);
+  btns.append(mkBtn("起きていない", "", () => { selectEvent(ev.id); gt[ev.id] = null; saveGt(); renderEvents(); }));
+  btns.append(mkBtn("クリア", "ghost", () => { selectEvent(ev.id); delete gt[ev.id]; saveGt(); renderEvents(); }));
   btns.append(mkBtn("削除", "ghost", () => askDelete(row, ev)));
   row.append(btns);
   return row;
@@ -540,22 +556,22 @@ function mkBtn(text, cls, on) {
 }
 
 function buildLane(ev) {
-  const sp = gt[ev.id];
-  const lane = el("div", "lane" + (sp === null ? " absent" : ""));
+  const lane = el("div", "lane" + (gt[ev.id] === null ? " absent" : ""));
   lane.dataset.event = ev.id;
   for (let i = 1; i < N; i++) {
     const t = el("div", "tick" + (i % 5 === 0 ? " major" : ""));
     t.style.left = (i / N * 100) + "%"; lane.append(t);
   }
-  if (sp) {
+  spansOf(ev.id).forEach((sp, i) => {
     const block = el("div", "span");
-    block.dataset.role = "move";                       // 本体を掴む=区間の移動
+    block.dataset.role = "move";          // 本体を掴む=区間の移動
+    block.dataset.spanIx = String(i);
     paintBlock(block, sp);
     const hl = el("div", "handle l"); hl.dataset.role = "l";
     const hr = el("div", "handle r"); hr.dataset.role = "r";
     block.append(hl, hr);
     lane.append(block);
-  }
+  });
   const ph = el("div", "playhead"); ph.style.left = phPos(idx) + "%"; lane.append(ph);
   lane.addEventListener("mousedown", e => startDrag(e, ev.id, lane));
   return lane;
@@ -572,22 +588,27 @@ function updateProgress() {
   document.title = `注釈 ${done}/${total} — ${cur ? cur.sop.name : ""}`;
 }
 
-// ---- 区間操作 -------------------------------------------------------------
+// ---- 区間操作(キーボード) ---------------------------------------------------
 function requireSel() { if (!selected) { toast("先にイベントを選んでください"); return false; } return true; }
-function setStart() {
+function keyNewSpan() {           // i: 現在フレームから新しい区間を始める
   if (!requireSel()) return;
-  const sp = gt[selected];
-  gt[selected] = sp ? { start_idx: idx, end_idx: Math.max(sp.end_idx, idx) } : { start_idx: idx, end_idx: idx };
+  const spans = Array.isArray(gt[selected]) ? gt[selected] : [];
+  spans.push({ start_idx: idx, end_idx: idx });
+  gt[selected] = sortSpans(spans);
   saveGt(); renderEvents();
 }
-function setEnd() {
+function keySetEnd() {            // o: 直近(最後)の区間の終了を現在フレームに
   if (!requireSel()) return;
-  const sp = gt[selected];
-  gt[selected] = sp ? { start_idx: Math.min(sp.start_idx, idx), end_idx: idx } : { start_idx: idx, end_idx: idx };
+  const spans = Array.isArray(gt[selected]) ? gt[selected] : null;
+  if (!spans || !spans.length) { keyNewSpan(); return; }
+  const sp = spans[spans.length - 1];
+  const a = Math.min(sp.start_idx, idx), b = Math.max(sp.start_idx, idx);
+  spans[spans.length - 1] = { start_idx: a, end_idx: b };
+  gt[selected] = sortSpans(spans);
   saveGt(); renderEvents();
 }
-function setAbsent() { if (!requireSel()) return; gt[selected] = null; saveGt(); renderEvents(); }
-function clearAnno() { if (!requireSel()) return; delete gt[selected]; saveGt(); renderEvents(); }
+function keyAbsent() { if (!requireSel()) return; gt[selected] = null; saveGt(); renderEvents(); }
+function keyClear() { if (!requireSel()) return; delete gt[selected]; saveGt(); renderEvents(); }
 
 // ---- タイムライン ドラッグ --------------------------------------------------
 // 重要: mousedown時にrectをキャッシュし、ドラッグ完了(mouseup)までDOMを再構築しない。
@@ -602,12 +623,16 @@ function startDrag(e, eventId, lane) {
   const rect = lane.getBoundingClientRect();
   const f = frameAt(rect, e.clientX);
   const role = e.target.dataset ? e.target.dataset.role : null;
-  const sp = gt[eventId];
-  if ((role === "l" || role === "r") && sp) {
-    drag = { mode: role, eventId, lane, rect, moved: false,
+  const blockEl = e.target.closest ? e.target.closest(".span") : null;
+  const spanIx = blockEl ? parseInt(blockEl.dataset.spanIx, 10) : -1;
+  const spans = spansOf(eventId);
+  if ((role === "l" || role === "r") && spans[spanIx]) {
+    const sp = spans[spanIx];
+    drag = { mode: role, eventId, lane, rect, moved: false, spanIx, block: blockEl,
              anchor: role === "l" ? sp.end_idx : sp.start_idx };
-  } else if (role === "move" && sp) {
-    drag = { mode: "move", eventId, lane, rect, moved: false,
+  } else if (role === "move" && spans[spanIx]) {
+    const sp = spans[spanIx];
+    drag = { mode: "move", eventId, lane, rect, moved: false, spanIx, block: blockEl,
              grabOffset: f - sp.start_idx, len: sp.end_idx - sp.start_idx };
   } else {
     drag = { mode: "create", eventId, lane, rect, moved: false, startFrame: f, curFrame: f };
@@ -629,23 +654,21 @@ document.addEventListener("mousemove", e => {
       if (!prev) { prev = el("div", "span preview"); drag.lane.append(prev); }
       paintBlock(prev, { start_idx: Math.min(drag.startFrame, f), end_idx: Math.max(drag.startFrame, f) });
     }
-  } else if (drag.mode === "move") {
-    const ns = clamp(f - drag.grabOffset, 0, N - 1 - drag.len);
-    const sp = gt[drag.eventId];
-    if (!sp || sp.start_idx !== ns) {
-      drag.moved = true;
-      gt[drag.eventId] = { start_idx: ns, end_idx: ns + drag.len };
-      const block = drag.lane.querySelector(".span:not(.preview)");
-      if (block) paintBlock(block, gt[drag.eventId]);
+  } else {
+    const spans = gt[drag.eventId];
+    const sp = spans && spans[drag.spanIx];
+    if (!sp) return;
+    let ns;
+    if (drag.mode === "move") {
+      const s = clamp(f - drag.grabOffset, 0, N - 1 - drag.len);
+      ns = { start_idx: s, end_idx: s + drag.len };
+    } else {
+      ns = { start_idx: Math.min(drag.anchor, f), end_idx: Math.max(drag.anchor, f) };
     }
-  } else {                                   // l / r ハンドル
-    const a = Math.min(drag.anchor, f), b = Math.max(drag.anchor, f);
-    const sp = gt[drag.eventId];
-    if (!sp || sp.start_idx !== a || sp.end_idx !== b) {
+    if (ns.start_idx !== sp.start_idx || ns.end_idx !== sp.end_idx) {
       drag.moved = true;
-      gt[drag.eventId] = { start_idx: a, end_idx: b };
-      const block = drag.lane.querySelector(".span:not(.preview)");
-      if (block) paintBlock(block, gt[drag.eventId]);
+      spans[drag.spanIx] = ns;
+      paintBlock(drag.block, ns);
     }
   }
   renderFrame();
@@ -655,19 +678,26 @@ document.addEventListener("mouseup", () => {
   if (!drag) return;
   const d = drag; drag = null;
   if (d.mode === "create" && d.moved) {
-    gt[d.eventId] = { start_idx: Math.min(d.startFrame, d.curFrame),
-                      end_idx: Math.max(d.startFrame, d.curFrame) };
-    saveGt();
-  } else if (d.mode !== "create" && d.moved) {
-    saveGt();
+    const span = { start_idx: Math.min(d.startFrame, d.curFrame),
+                   end_idx: Math.max(d.startFrame, d.curFrame) };
+    const spans = Array.isArray(gt[d.eventId]) ? gt[d.eventId] : [];
+    spans.push(span);                        // 「起きていない」や未注釈の上に引いたら上書き
+    gt[d.eventId] = sortSpans(spans);
+    saveGt(); renderEvents(); renderFrame();
+    return;
+  }
+  if (d.mode !== "create" && d.moved) {
+    gt[d.eventId] = sortSpans(gt[d.eventId]);  // 移動で順序が入れ替わったら並べ直す
+    saveGt(); renderEvents(); renderFrame();
+    return;
   }
   // 動かさなかった場合は再生位置の移動だけ(区間は変えない)
-  renderEvents(); renderFrame();
+  renderFrame();
 });
 
 // ---- イベント追加/削除 ------------------------------------------------------
-// 追加はフォームを挟まず、その場でカードを作ってタイトルへフォーカスする。
-// IDは自動連番(ユーザーに入力させない)。タイトルと質問はカード上で直接編集。
+// 追加はフォームを挟まず、その場でカードを作って質問入力へフォーカスする。
+// IDは自動連番(あとからカード上で変更できる)。
 function nextEventId() {
   const taken = new Set(cur ? cur.events.map(e => e.id) : []);
   let n = (cur ? cur.events.length : 0) + 1, id;
@@ -678,8 +708,8 @@ $("#addBtn").onclick = async () => {
   if (!cur) return;
   const id = nextEventId();
   focusEventId = id;
-  const ok = await sopOp({ op: "upsert_event", event_id: id, name: "", ask: "" },
-                         "追加しました。タイトルと質問を入力してください");
+  const ok = await sopOp({ op: "upsert_event", event_id: id, ask: "" },
+                         "追加しました。VLMへ送る質問を入力してください");
   if (ok) selectEvent(id); else focusEventId = null;
 };
 
@@ -687,7 +717,8 @@ function askDelete(row, ev) {
   const old = row.querySelector(".confirm");
   if (old) old.remove();
   const c = el("div", "confirm");
-  const m = el("span", "msg"); m.textContent = `「${ev.name || ev.id}」を削除しますか？このイベントの注釈も消えます。`;
+  const m = el("span", "msg");
+  m.textContent = `「${ev.question || ev.id}」を削除しますか？このイベントの注釈も消えます。`;
   const yes = el("button", "btn sm danger"); yes.textContent = "削除する";
   const no = el("button", "btn sm ghost"); no.textContent = "やめる";
   yes.onclick = async e => { e.stopPropagation(); await sopOp({ op: "delete_event", event_id: ev.id }, "削除しました"); };
@@ -726,10 +757,10 @@ window.addEventListener("keydown", e => {
     const d = e.key === "ArrowUp" ? -1 : 1;
     selectEvent(ids[(ids.indexOf(selected) + d + ids.length) % ids.length]);
   }
-  else if (e.key === "i") setStart();
-  else if (e.key === "o") setEnd();
-  else if (e.key === "n") setAbsent();
-  else if (e.key === "x") clearAnno();
+  else if (e.key === "i") keyNewSpan();
+  else if (e.key === "o") keySetEnd();
+  else if (e.key === "n") keyAbsent();
+  else if (e.key === "x") keyClear();
 });
 
 // ---- 起動 -------------------------------------------------------------------
