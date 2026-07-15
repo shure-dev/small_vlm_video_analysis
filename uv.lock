@@ -912,6 +912,7 @@ marlin = [
 test = [
     { name = "httpx2" },
     { name = "pytest" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 vlm = [
     { name = "mlx" },
@@ -931,6 +932,7 @@ requires-dist = [
     { name = "opencv-python", marker = "extra == 'vlm'", specifier = ">=4.8" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "tomli", marker = "python_full_version < '3.11' and extra == 'test'", specifier = ">=2.0" },
     { name = "torch", marker = "extra == 'marlin'", specifier = ">=2.12" },
     { name = "torchcodec", marker = "extra == 'marlin'", specifier = ">=0.14" },
     { name = "torchvision", marker = "extra == 'marlin'", specifier = ">=0.27" },
