@@ -11,8 +11,8 @@
 **Toward a Connected Worker platform that understands factory procedures in real time and catches critical deviations before they cause harm.**
 
 <p align="center">
-  <img src="docs/assets/factory_ego_temporal_grounding.gif" alt="Factory Ego interface comparing video, human spans, Marlin-2B spans, and event-level tIoU" width="960"><br>
-  <sub>Three Factory Ego experiments. Orange shows human spans; blue shows Marlin-2B predictions.</sub>
+  <img src="docs/assets/factory_ego_temporal_grounding.gif" alt="Annotation workspace playing Factory Ego clips with human spans, Marlin-2B spans, and per-clip tIoU" width="960"><br>
+  <sub>Ten Factory Ego clips playing back to back. Orange shows human spans; blue shows Marlin-2B predictions.</sub>
 </p>
 
 ## Catch procedural mistakes before they become incidents
@@ -43,17 +43,17 @@ The current work first establishes this temporal capability on short clips. Temp
 
 The primary pilot uses 20 fixed industrial first-person clips from [Egocentric-10K](https://huggingface.co/datasets/builddotai/Egocentric-10K). Each clip is 20 seconds at 2 fps. A human watches the footage, writes Japanese event descriptions, and marks the reference spans. External machine-generated annotations are not used as ground truth.
 
-Six clips with 25 reference occurrences are currently annotated and compared with Marlin-2B temporal-grounding output. The GIF above cycles through three examples.
+**All 20 clips are now annotated with 75 events and 88 reference spans**, compared against Marlin-2B temporal-grounding output. Development evaluations run on three frozen prediction runs that together cover all 20 clips.
 
-| Factory Ego experiment | Events | mean tIoU |
-|---|---:|---:|
-| Metal stamping | 4 | 0.816 |
-| Garment bagging | 4 | 0.725 |
-| Shirt folding | 4 | 0.645 |
+| Development evaluation | Scope | Reference spans | mean tIoU | tIoU@0.5 F1 |
+|---|---|---:|---:|---:|
+| [reviewed6](evaluations/factory_ego_marlin_reviewed6.json) | first 6 clips with tuned definitions and queries | 23 | 0.561 | 0.756 |
+| [annotation-delta5](evaluations/factory_ego_marlin_annotation_delta5.json) | 5 clips with revised event definitions | 13 | 0.474 | 0.750 |
+| [new10-baseline](evaluations/factory_ego_marlin_new10_baseline.json) | 10 new clips, untuned baseline | 56 | 0.335 | 0.396 |
 
-Across all 25 reference occurrences, mean tIoU is `0.516` and `tIoU@0.5` F1 is `0.708`. The current Marlin `find()` interface returns one span per query, so its mean tIoU on the 21 single-span event IDs is `0.591`.
+The gap of more than 0.2 mean tIoU between the tuned 6 clips and the untuned 10 shows how much event wording drives accuracy. The current Marlin `find()` interface also returns one span per query, so mean tIoU restricted to single-span event IDs is `0.591 / 0.571 / 0.450` respectively.
 
-These are development diagnostics on clips and prompts used during iteration, not held-out benchmark accuracy. Fixed inputs and raw outputs are in [`runs/20260714-factory_ego-marlin-2b-reviewed6-tuned/`](runs/20260714-factory_ego-marlin-2b-reviewed6-tuned/); metrics and hashes are in [`evaluations/factory_ego_marlin_reviewed6.json`](evaluations/factory_ego_marlin_reviewed6.json).
+These are development diagnostics on clips and prompts used during iteration, not held-out benchmark accuracy. Fixed inputs and raw outputs are in [`runs/`](runs/); metrics and input hashes are in [`evaluations/`](evaluations/).
 
 ## Improvement loop
 
@@ -68,10 +68,11 @@ flowchart LR
     F --> E
 ```
 
-One web app switches between two workspaces:
+One web app unifies annotation and results review:
 
-- **Annotation** — save Japanese event descriptions, multiple spans, and an explicit absent state
-- **Results** — compare human and model spans on one timeline and inspect low-tIoU events first
+- **Thumbnail gallery** — browse the 20 clips with per-clip progress and mean tIoU, sorted by lowest tIoU first
+- **Video-editor timeline** — create and drag human spans next to model predictions on one screen; tIoU and F1 recompute live as spans move
+- **Dataset curation** — clips excluded from training and evaluation are flagged in `datasets/<dataset>/curation.json`
 
 Translation, inference, and training remain reproducible CLI stages outside the app. The original Japanese annotation is human ground truth and is never overwritten by a model prediction.
 

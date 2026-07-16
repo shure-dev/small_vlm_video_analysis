@@ -11,8 +11,8 @@
 **工場の作業手順をリアルタイムに理解し、重大な手順逸脱を問題が起きる前に捉えるConnected Worker向け小型VLMの開発基盤を目指します。**
 
 <p align="center">
-  <img src="docs/assets/factory_ego_temporal_grounding.gif" alt="Factory Egoの動画、人手区間、Marlin-2Bのモデル区間、イベント別tIoUを比較する画面" width="960"><br>
-  <sub>Factory Egoの3実験。橙が人手区間、青がMarlin-2Bの予測区間です。</sub>
+  <img src="docs/assets/factory_ego_temporal_grounding.gif" alt="Factory Egoの動画、人手区間、Marlin-2Bのモデル区間、動画別tIoUを表示するアノテーションワークスペース" width="960"><br>
+  <sub>Factory Egoの10本を連続再生。橙が人手区間、青がMarlin-2Bの予測区間です。</sub>
 </p>
 
 ## 手順の間違いを、問題が起きる前に捉える
@@ -43,17 +43,17 @@
 
 主対象は、[Egocentric-10K](https://huggingface.co/datasets/builddotai/Egocentric-10K)から固定した20本の工場一人称動画です。各動画は20秒・2fpsで、人間が映像を見ながら日本語のイベント文と正解区間を作ります。外部の機械生成アノテーションは正解データとして使いません。
 
-現在は6本、25区間の人手アノテーションを作成し、Marlin-2BのTemporal Grounding出力と比較しています。冒頭のGIFには次の3本を掲載しています。
+現在は**20本すべてに75イベント・88正解区間**の人手アノテーションが完了し、Marlin-2BのTemporal Grounding出力と比較しています。development評価は、入力を固定した3つのrunで20本全体をカバーします。
 
-| Factory Ego実験 | イベント数 | mean tIoU |
-|---|---:|---:|
-| 金属プレス | 4 | 0.816 |
-| 衣類の袋詰め | 4 | 0.725 |
-| シャツの折り畳み | 4 | 0.645 |
+| development評価 | 対象 | 正解区間 | mean tIoU | tIoU@0.5 F1 |
+|---|---|---:|---:|---:|
+| [reviewed6](evaluations/factory_ego_marlin_reviewed6.json) | 定義とクエリを調整した最初の6本 | 23 | 0.561 | 0.756 |
+| [annotation-delta5](evaluations/factory_ego_marlin_annotation_delta5.json) | イベント定義を改訂した5本 | 13 | 0.474 | 0.750 |
+| [new10-baseline](evaluations/factory_ego_marlin_new10_baseline.json) | 追加した10本（調整前のbaseline） | 56 | 0.335 | 0.396 |
 
-6本・全25正解区間ではmean tIoUが`0.516`、`tIoU@0.5` F1が`0.708`です。同一イベントが複数回起きる動画に対し、現在のMarlin `find()`は1 queryにつき1区間しか返せないため、単一区間の21 event IDに限るとmean tIoUは`0.591`です。
+定義とクエリを調整した6本と未調整の10本ではmean tIoUに0.2以上の差があり、イベント文の質が精度を大きく左右します。また、同一イベントが複数回起きる動画に対し、現在のMarlin `find()`は1 queryにつき1区間しか返せないため、単一区間のevent IDに限るとmean tIoUはそれぞれ`0.591 / 0.571 / 0.450`です。
 
-これらはイベント定義とプロンプトの調整にも使ったdevelopmentデータ上の診断値であり、未見動画に対する正式なベンチマーク精度ではありません。固定した入力とraw出力は [`runs/20260714-factory_ego-marlin-2b-reviewed6-tuned/`](runs/20260714-factory_ego-marlin-2b-reviewed6-tuned/)、評価値とhashは [`evaluations/factory_ego_marlin_reviewed6.json`](evaluations/factory_ego_marlin_reviewed6.json) から確認できます。
+これらはイベント定義とプロンプトの調整にも使ったdevelopmentデータ上の診断値であり、未見動画に対する正式なベンチマーク精度ではありません。固定した入力とraw出力は [`runs/`](runs/)、評価値と入力hashは [`evaluations/`](evaluations/) から確認できます。
 
 ## 改善ループ
 
@@ -68,10 +68,11 @@ flowchart LR
     F --> E
 ```
 
-一つのWebアプリで、次の二つを切り替えます。
+一つのWebアプリに、アノテーションと結果レビューを統合しています。
 
-- **アノテーション** — 動画を見て、日本語のイベント文と複数の発生区間、明示的な非該当を保存
-- **結果レビュー** — 人手区間とモデル区間を同じタイムラインに表示し、低tIoUのイベントから確認
+- **サムネイルギャラリー** — 20本の進捗と動画別mean tIoUを一覧し、tIoUが低い順に並べ替えて弱い動画から確認
+- **動画編集ソフト型タイムライン** — 日本語イベント文と発生区間の作成・ドラッグ調整、モデル予測との比較を同じ画面で実施。区間を動かすとtIoUとF1が即時に再計算されます
+- **データセット管理** — 学習・評価から外す動画は除外フラグとして `datasets/<dataset>/curation.json` に保存
 
 推論、翻訳、学習はアプリ内で実行せず、再現可能なCLI工程として分離します。日本語アノテーションは人手の正本として残り、モデル出力が上書きすることはありません。
 
