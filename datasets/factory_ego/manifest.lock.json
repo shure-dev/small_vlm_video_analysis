@@ -42,25 +42,25 @@
       "frame_count": 40,
       "frames_manifest_sha256": "8058aa4f7bbf6374b3bd433c67cfcdf79ea9a3c7c2d012bdfe55820e4d6b2177",
       "meta_sha256": "e6086279c88e84e58be7473e41ec1661f30f8f11e0bab102f01240d60fe06780",
-      "sop_sha256": "f4253812c02dbbdd8cf109fb556ab8cc643b2c728384a91786a9fde15d54a37d"
+      "sop_sha256": "992c0eef71a3e1f068854dbb4e16fe961fc283698c461508460e674e2ccca694"
     },
     "f003_w009_injection_molding": {
       "frame_count": 40,
       "frames_manifest_sha256": "9c4ca865aee61e0ac2bd7e4186cfc1e2f7791916492aaa262cec7a811a40f6a0",
       "meta_sha256": "f4cd01eb2689e409b626733d9d4b4fbea730419eb4f1466eef4f88157701cdbd",
-      "sop_sha256": "b2a0cc5e1cfe2d35523b770eead45acb3dc17abc246674bb585eeaa58efa39cc"
+      "sop_sha256": "8d13af91eeaf0d7f7f5be0d696ddfe42e21268a9ed39678f37cc37055ce70483"
     },
     "f003_w010_mold_preparation": {
       "frame_count": 40,
       "frames_manifest_sha256": "71175039f7b7c244a4d26405f8b94f0e7723380624209ac8843f216907e54924",
       "meta_sha256": "ac9aa942ebdf1802c4fea8bc57babbd9fcff0c7f91f40dff800c2d9be8764c8a",
-      "sop_sha256": "e2273bd819b23cb3a4e03ad9e372b331cf88e320d5e39358fb5deeaa4899a4f1"
+      "sop_sha256": "b07fee0c9a42409bd4501836feb111f3d96f5e82c1f244b02b978065cd5463d3"
     },
     "f004_w002_thread_trimming": {
       "frame_count": 40,
       "frames_manifest_sha256": "8b3497c89b62f79fc3dcad513fe7e623391fa683a2527355e8bf2dbc3afddd3d",
       "meta_sha256": "1241f6fbc818650cfe803df01c83ddf23d8fb02ed20e6e622141b48f08877e2f",
-      "sop_sha256": "86b720af09b3e185623d6650d1505386916660c08f481e85b7e5ea3d76628be4"
+      "sop_sha256": "73b0a6263fa802cd066a07cabc9d35d999c32bd7162d84232e74c27e9b2000cc"
     },
     "f004_w004_continuous_fabric": {
       "frame_count": 40,

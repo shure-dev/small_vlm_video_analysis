@@ -3,12 +3,12 @@
   "annotation_revision": "human",
   "interval_convention": "half-open_seconds",
   "event_labels": {
-    "event_001": "白い棒状のもので黄色の部品を清掃する",
-    "event_002": "白いチョークで黄色の物体に印をつける",
-    "event_003": "黄色い部品をトレーに置く"
+    "clean_wax_cluster_with_rod": "作業者が黄色い蝋部品の房を片手で持ち、先端が色付きの細い棒状の道具で房の表面をなぞって整えている",
+    "mark_wax_cluster_with_white_tool": "作業者が黄色い蝋部品の房を両手で中央に持ち、白い先端の道具で房に印を付けている",
+    "place_wax_cluster_on_rack": "作業者が黄色い蝋部品の房を、作業台奥に並ぶ同種の房のトレーへ腕を伸ばして置いている"
   },
   "events": {
-    "event_001": [
+    "clean_wax_cluster_with_rod": [
       {
         "start_s": 0,
         "end_s": 5
@@ -18,13 +18,13 @@
         "end_s": 18.5
       }
     ],
-    "event_002": [
+    "mark_wax_cluster_with_white_tool": [
       {
         "start_s": 5,
         "end_s": 7
       }
     ],
-    "event_003": [
+    "place_wax_cluster_on_rack": [
       {
         "start_s": 7,
         "end_s": 9

@@ -3,17 +3,17 @@
   "annotation_revision": "human",
   "interval_convention": "half-open_seconds",
   "event_labels": {
-    "event_001": "黄色のプラスチックの部品を金属の鋳型から取り出す",
-    "event_002": "金属の棒を持つ"
+    "remove_yellow_parts_from_mold": "作業者が青い手袋の手で、開いた金属金型から黄色い樹脂成形部品を取り出している",
+    "hold_metal_rod_at_mold": "作業者が金型の脇で細い金属棒を手に持っている"
   },
   "events": {
-    "event_001": [
+    "remove_yellow_parts_from_mold": [
       {
         "start_s": 0,
         "end_s": 5.5
       }
     ],
-    "event_002": [
+    "hold_metal_rod_at_mold": [
       {
         "start_s": 9.5,
         "end_s": 12
