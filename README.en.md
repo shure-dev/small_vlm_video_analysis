@@ -43,20 +43,34 @@ The current work first establishes this temporal capability on short clips. Temp
 
 The primary pilot uses 20 fixed industrial first-person clips from [Egocentric-10K](https://huggingface.co/datasets/builddotai/Egocentric-10K). Each clip is 20 seconds at 2 fps. A human watches the footage, writes Japanese event descriptions, and marks the reference spans. External machine-generated annotations are not used as ground truth.
 
-**All 20 clips are now annotated with 75 events and 88 reference spans**, compared against Marlin-2B temporal-grounding output. The examples below come from the same untuned baseline run so that a first-time reader can see what the footage contains and how closely the model localized each clip. A mean tIoU of `1.0` is a perfect overlap with the human spans; `0.0` means no overlap.
+**All 20 clips are now annotated with 75 events and 88 reference spans**, compared against Marlin-2B temporal-grounding output. The table selects one stored result compatible with the current event definition for every clip and combines all 20 clips into one view. A mean tIoU of `1.0` is a perfect overlap with the human spans; `0.0` means no overlap.
 
 | 20-second clip | What happens in the footage | Marlin-2B<br>mean tIoU |
 |---|---|---:|
-| [Handling fabric after heat pressing](datasets/factory_ego/sops/f004_w005_heat_press/sop.yaml) | Open the press, remove a white fabric item, then spread and fold the next piece | **0.654** |
-| [Sewing a curved fabric edge](datasets/factory_ego/sops/f004_w006_curvilinear_seam/sop.yaml) | Align a curved gray edge, position it under the presser foot, and guide it while sewing | **0.633** |
-| [Positioning a compression-molding die](datasets/factory_ego/sops/f006_w005_compression_molding/sop.yaml) | Carry a silver die into the press, align it under the upper tool, and move the control lever | **0.551** |
-| [Operating a manual lathe](datasets/factory_ego/sops/f005_w010_manual_lathe/sop.yaml) | Turn a fixture with a box wrench, put the wrench down, then operate the controls and handwheel | 0.424 |
-| [Binding a garment edge](datasets/factory_ego/sops/f004_w006_edge_binding/sop.yaml) | Sew the bound edge of a gray garment, cut excess binding, and spread the garment again | 0.240 |
-| [Sorting cylindrical metal parts](datasets/factory_ego/sops/f006_w004_bulk_material/sop.yaml) | Repeatedly lift similar parts from a large bin and move them to two destinations | 0.035 |
+| [Assembling and replenishing metal parts](datasets/factory_ego/sops/f001_w004_material_replenishment/sop.yaml) | Fasten a part with a power driver, pour parts from an inverted bag, and bundle the empty bag | 0.086 |
+| [Metal stamping workflow](datasets/factory_ego/sops/f001_w011_metal_stamping/sop.yaml) | Feed strip material into a press, walk to the next machine, and align a stack of metal sheets | 0.507 |
+| [Bagging folded garments](datasets/factory_ego/sops/f002_w002_garment_bagging/sop.yaml) | Insert a folded garment into a clear bag, seal it, and move the finished package | 0.566 |
+| [Folding a garment](datasets/factory_ego/sops/f002_w003_fabric_folding/sop.yaml) | Pick up a light-blue garment, fold it, and lift a black hanger | 0.504 |
+| [Folding a shirt with a board](datasets/factory_ego/sops/f002_w005_garment_ironing/sop.yaml) | Fold a shirt around a board, turn it over, and stack the finished item | 0.645 |
+| [Finishing cast-metal parts](datasets/factory_ego/sops/f003_w005_metal_casting/sop.yaml) | Carry cast parts into a wooden box and strike parts with a wood-handled hammer | 0.350 |
+| [Cleaning and marking a yellow part](datasets/factory_ego/sops/f003_w007_wax_pattern/sop.yaml) | Clean a yellow part, mark it with white chalk, and place it in a tray | 0.405 |
+| [Removing a molded part](datasets/factory_ego/sops/f003_w009_injection_molding/sop.yaml) | Remove a yellow plastic part from a metal mold and pick up a metal rod | 0.391 |
+| [Placing a lid on a mold](datasets/factory_ego/sops/f003_w010_mold_preparation/sop.yaml) | Place a yellow lid over a mold | **0.719** |
+| [Trimming garment threads](datasets/factory_ego/sops/f004_w002_thread_trimming/sop.yaml) | Cut garment threads with scissors and spread the garment on a table | **0.695** |
+| [Feeding a black garment into a sewing machine](datasets/factory_ego/sops/f004_w004_continuous_fabric/sop.yaml) | Spread a black garment, align its edge, and feed it under the presser foot | 0.498 |
+| [Handling fabric after heat pressing](datasets/factory_ego/sops/f004_w005_heat_press/sop.yaml) | Open the press, remove a white fabric item, then spread and fold the next piece | 0.594 |
+| [Overlock sewing pink fabric](datasets/factory_ego/sops/f004_w005_overlock_seaming/sop.yaml) | Sew and remove one piece, align the next fabric edge, and move it to the needle | 0.301 |
+| [Sewing a curved fabric edge](datasets/factory_ego/sops/f004_w006_curvilinear_seam/sop.yaml) | Align a curved gray edge, position it under the presser foot, and guide it while sewing | 0.633 |
+| [Binding a garment edge](datasets/factory_ego/sops/f004_w006_edge_binding/sop.yaml) | Sew the bound edge of a gray garment, cut excess binding, and spread the garment again | 0.228 |
+| [Operating a winding machine](datasets/factory_ego/sops/f005_w001_semi_automatic/sop.yaml) | Place a ring-shaped coil on a fixture, arrange cord-like material, and use the control panel | 0.380 |
+| [Operating a manual lathe](datasets/factory_ego/sops/f005_w010_manual_lathe/sop.yaml) | Turn a fixture with a box wrench, put the wrench down, then operate the controls and handwheel | 0.605 |
+| [Mounting a fixture in a CNC machine](datasets/factory_ego/sops/f005_w011_cnc_machine/sop.yaml) | Carry and mount a square fixture, use the control panel, and close the machine door | 0.423 |
+| [Sorting cylindrical metal parts](datasets/factory_ego/sops/f006_w004_bulk_material/sop.yaml) | Repeatedly lift similar parts from a large bin and move them to two destinations | 0.013 |
+| [Positioning a compression-molding die](datasets/factory_ego/sops/f006_w005_compression_molding/sop.yaml) | Carry a silver die into the press, align it under the upper tool, and move the control lever | 0.552 |
 
-Across all 10 clips in this baseline, mean tIoU is `0.335` and tIoU@0.5 F1 is `0.396`. In this run, coherent multi-step actions are localized more closely, while repeated transfers of similar-looking parts are barely aligned. The app lets you inspect the human and model spans on the video to see which event caused each error.
+Across all 20 clips, mean tIoU is `0.389` and tIoU@0.5 F1 is `0.491`. The app lets you inspect the human and model spans on the same video to see which event caused each error.
 
-These are development diagnostics on clips and prompts used during iteration, not held-out benchmark accuracy. Fixed inputs and raw outputs are in [`runs/`](runs/). Frozen evaluations with per-clip scores are available for the [10-clip baseline](evaluations/factory_ego_marlin_new10_baseline.json), the [first 6 clips](evaluations/factory_ego_marlin_reviewed6.json), and [5 clips with revised definitions](evaluations/factory_ego_marlin_annotation_delta5.json).
+These are development diagnostics on clips and prompts used during iteration, not held-out benchmark accuracy. The table follows the same rule as the app: select model results whose stored SOP hash matches the current definition. Fixed inputs and raw outputs are in [`runs/`](runs/); frozen per-run evaluations are in [`evaluations/`](evaluations/).
 
 ## Improvement loop
 
