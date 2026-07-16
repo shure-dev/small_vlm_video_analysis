@@ -1,0 +1,4 @@
+interface:
+  display_name: "動画単一イベントアノテーション"
+  short_description: "一度だけ起きる代表イベントを一つの区間として注釈する"
+  default_prompt: "Use $annotate-video-events to select one sustained, non-repeating event from a video and annotate exactly one temporal span."
