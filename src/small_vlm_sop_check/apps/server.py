@@ -1,6 +1,7 @@
 """動画アノテーションSPA向けの小さなHTTP API。"""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -62,6 +63,25 @@ def _unit_summary(unit: Unit) -> dict[str, Any]:
     else:
         summary["annotation_state"] = "not_started"
     return summary
+
+
+def _model_key(model: Any) -> str:
+    """UIで同一モデルとして扱うための安定した識別子を返す。"""
+    if not isinstance(model, dict):
+        return "unknown-model"
+    return str(model.get("id") or model.get("name") or "unknown-model")
+
+
+def _uses_current_sop(comparison: Any, unit: Unit) -> bool:
+    """runが現在のイベント定義を入力に使った場合だけTrueを返す。"""
+    lock_path = comparison.run_dir / "inputs.lock.json"
+    try:
+        lock = json.loads(lock_path.read_text(encoding="utf-8"))
+        locked_sha = lock["units"][unit.unit_id]["sop_sha256"]
+        current_sha = hashlib.sha256(unit.sop_path.read_bytes()).hexdigest()
+    except (KeyError, OSError, TypeError, ValueError):
+        return False
+    return locked_sha == current_sha
 
 
 def create_app(
@@ -169,18 +189,27 @@ def create_app(
     def get_comparisons(dataset: str, unit_id: str) -> dict[str, Any]:
         unit = _find_unit(catalog(), dataset, unit_id)
         result: list[dict[str, Any]] = []
+        selected_models: set[str] = set()
         for run_id, comparison in discover_run_comparisons(repo_root).items():
             if comparison.dataset_id != dataset or comparison.reference_revision != "human":
                 continue
+            if not _uses_current_sop(comparison, unit):
+                continue
             unit_comparison = comparison.for_unit(unit)
-            if unit_comparison is not None:
-                result.append(
-                    {
-                        "run_id": run_id,
-                        "model": comparison.run.get("model", {}),
-                        "comparison": unit_comparison,
-                    }
-                )
+            if unit_comparison is None:
+                continue
+            model = comparison.run.get("model", {})
+            key = _model_key(model)
+            if key in selected_models:
+                continue
+            selected_models.add(key)
+            result.append(
+                {
+                    "run_id": run_id,
+                    "model": model,
+                    "comparison": unit_comparison,
+                }
+            )
         return {"runs": result}
 
     static_dir = frontend_dir or Path(__file__).with_name("frontend_dist")

@@ -41,7 +41,7 @@ type ComparisonEvent = {
 };
 type ComparisonRun = {
   run_id: string;
-  model: { name?: string };
+  model: { id?: string; name?: string };
   comparison: {
     summary: {
       mean_tiou: number | null;
@@ -53,6 +53,8 @@ type ComparisonRun = {
   };
 };
 type TimelineRow = { id: string; label: string; human: Span[] | null | undefined; model: Span[] | null | undefined; tiou: number | null };
+
+const modelKey = (run: ComparisonRun) => run.model.id || run.model.name || "unknown-model";
 
 const clone = <T,>(value: T): T => structuredClone(value);
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -134,28 +136,28 @@ const STATE_LABEL: Record<string, string> = { complete: "完了", in_progress: "
 const STATE_MARK: Record<string, string> = { complete: "✓", in_progress: "△", invalid: "！" };
 const tiouClass = (value: number) => (value < 0.5 ? "bad" : value < 0.6 ? "check" : "good");
 
-function Sidebar({ bootstrap, dataset, unitId, allRuns, runId, runOptions, liveMean, onDataset, onUnit, onRun }: {
+function Sidebar({ bootstrap, dataset, unitId, allRuns, modelId, modelOptions, liveMean, onDataset, onUnit, onModel }: {
   bootstrap: Bootstrap;
   dataset: string;
   unitId: string;
   allRuns: Record<string, ComparisonRun[]>;
-  runId: string;
-  runOptions: [string, string][];
+  modelId: string;
+  modelOptions: [string, string][];
   liveMean?: number | null;
   onDataset: (value: string) => void;
   onUnit: (value: string) => void;
-  onRun: (value: string) => void;
+  onModel: (value: string) => void;
 }) {
   const [sortBy, setSortBy] = useState<"name" | "tiou">("name");
   const units = bootstrap.units.filter((unit) => unit.dataset === dataset);
   const done = units.filter((unit) => unit.annotation_state === "complete").length;
   const unitTiou = (id: string) => {
     if (id === unitId && liveMean !== undefined) return liveMean;
-    return allRuns[id]?.find((run) => run.run_id === runId)?.comparison.summary.mean_tiou ?? null;
+    return allRuns[id]?.find((run) => modelKey(run) === modelId)?.comparison.summary.mean_tiou ?? null;
   };
   const scores = units.map((unit) => unitTiou(unit.unit_id)).filter((value): value is number => value !== null);
   const average = scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null;
-  const sorted = sortBy === "name" || !runId ? units : [...units].sort((a, b) => {
+  const sorted = sortBy === "name" || !modelId ? units : [...units].sort((a, b) => {
     const scoreA = unitTiou(a.unit_id);
     const scoreB = unitTiou(b.unit_id);
     if (scoreA === null && scoreB === null) return a.unit_id.localeCompare(b.unit_id);
@@ -173,7 +175,7 @@ function Sidebar({ bootstrap, dataset, unitId, allRuns, runId, runOptions, liveM
         </p>
         <div className="sort-switch" role="group" aria-label="並び順">
           <button className={sortBy === "name" ? "active" : ""} onClick={() => setSortBy("name")}>名前順</button>
-          <button className={sortBy === "tiou" ? "active" : ""} disabled={!runId} onClick={() => setSortBy("tiou")}>tIoU低い順</button>
+          <button className={sortBy === "tiou" ? "active" : ""} disabled={!modelId} onClick={() => setSortBy("tiou")}>tIoU低い順</button>
         </div>
       </header>
       <div className="video-gallery" role="list" aria-label="動画一覧">
@@ -204,11 +206,11 @@ function Sidebar({ bootstrap, dataset, unitId, allRuns, runId, runOptions, liveM
         <select id="dataset" value={dataset} onChange={(event) => onDataset(event.target.value)}>
           {bootstrap.datasets.map((name) => <option key={name}>{name}</option>)}
         </select>
-        <label className="field-label" htmlFor="run">モデル予測</label>
-        <select id="run" value={runId} onChange={(event) => onRun(event.target.value)} disabled={!runOptions.length}>
-          {runOptions.length ? <>
+        <label className="field-label" htmlFor="model">モデル予測</label>
+        <select id="model" value={modelId} onChange={(event) => onModel(event.target.value)} disabled={!modelOptions.length}>
+          {modelOptions.length ? <>
             <option value="">表示しない</option>
-            {runOptions.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+            {modelOptions.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
           </> : <option value="">推論結果なし</option>}
         </select>
       </footer>
@@ -581,7 +583,7 @@ export default function App() {
   const [unitId, setUnitId] = useState("");
   const [unit, setUnit] = useState<UnitData | null>(null);
   const [allRuns, setAllRuns] = useState<Record<string, ComparisonRun[]>>({});
-  const [runId, setRunId] = useState("");
+  const [modelId, setModelId] = useState("");
   const [showPredictions, setShowPredictions] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -606,15 +608,20 @@ export default function App() {
     )).then((entries) => { if (!cancelled) setAllRuns(Object.fromEntries(entries)); });
     return () => { cancelled = true; };
   }, [bootstrap, dataset]);
-  const runOptions = useMemo(() => {
-    const coverage = new Map<string, number>();
-    Object.values(allRuns).flat().forEach((run) => coverage.set(run.run_id, (coverage.get(run.run_id) ?? 0) + 1));
-    return [...coverage.entries()].map(([id, count]) => [id, `${id.replace(`-${dataset}-`, "-")}（${count}本）`] as [string, string]);
-  }, [allRuns, dataset]);
+  const modelOptions = useMemo(() => {
+    const models = new Map<string, string>();
+    Object.values(allRuns).forEach((runs) => {
+      runs.forEach((run) => {
+        const key = modelKey(run);
+        models.set(key, run.model.name || key);
+      });
+    });
+    return [...models.entries()];
+  }, [allRuns]);
   useEffect(() => {
-    if (!runOptions.length) { setRunId(""); return; }
-    setRunId((current) => runOptions.some(([id]) => id === current) ? current : runOptions[0][0]);
-  }, [runOptions]);
+    if (!modelOptions.length) { setModelId(""); return; }
+    setModelId((current) => modelOptions.some(([id]) => id === current) ? current : modelOptions[0][0]);
+  }, [modelOptions]);
   useEffect(() => {
     if (!dataset || !unitId) return;
     setUnit(null);
@@ -646,13 +653,13 @@ export default function App() {
   };
   if (error && !bootstrap) return <main className="fatal"><h1>起動できませんでした</h1><p>{error}</p></main>;
   if (!bootstrap || !dataset || !unitId) return <main className="loading">読み込み中…</main>;
-  const run = showPredictions ? (allRuns[unitId] ?? []).find((item) => item.run_id === runId) : undefined;
+  const run = showPredictions ? (allRuns[unitId] ?? []).find((item) => modelKey(item) === modelId) : undefined;
   const liveStats = unit && run ? computeLiveStats(unit, run) : null;
   return <div className="app-shell">
-    {sidebarOpen && <Sidebar bootstrap={bootstrap} dataset={dataset} unitId={unitId} allRuns={allRuns} runId={showPredictions ? runId : ""} runOptions={runOptions}
+    {sidebarOpen && <Sidebar bootstrap={bootstrap} dataset={dataset} unitId={unitId} allRuns={allRuns} modelId={showPredictions ? modelId : ""} modelOptions={modelOptions}
       liveMean={liveStats ? liveStats.mean : undefined}
       onDataset={changeDataset} onUnit={setUnitId}
-      onRun={(value) => { if (!value) setShowPredictions(false); else { setShowPredictions(true); setRunId(value); } }} />}
+      onModel={(value) => { if (!value) setShowPredictions(false); else { setShowPredictions(true); setModelId(value); } }} />}
     <main className="main">
       <header className="topbar">
         <button className="icon-btn" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="サイドバーを切り替え" aria-expanded={sidebarOpen}>☰</button>

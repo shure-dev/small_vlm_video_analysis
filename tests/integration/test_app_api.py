@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 
@@ -35,12 +36,26 @@ def test_api_loads_all_complete_units_and_available_marlin_comparisons():
         if not runs:
             continue
         comparison_units.add(unit_id)
+        model_keys = [run["model"].get("id") or run["model"]["name"] for run in runs]
+        assert len(model_keys) == len(set(model_keys))
         assert all(run["model"]["name"] == "Marlin-2B temporal grounding" for run in runs)
         assert all(run["comparison"]["summary"]["mean_tiou"] is not None for run in runs)
         assert all(
             isinstance(event["event_id"], str)
             for run in runs for event in run["comparison"]["events"]
         )
+        current_sop_sha = hashlib.sha256(
+            (
+                ROOT / "datasets" / "factory_ego" / "sops" / unit_id / "sop.yaml"
+            ).read_bytes()
+        ).hexdigest()
+        for run in runs:
+            lock = json.loads(
+                (ROOT / "runs" / run["run_id"] / "inputs.lock.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            assert lock["units"][unit_id]["sop_sha256"] == current_sop_sha
 
     run_targets = set()
     for run_path in (ROOT / "runs").glob("*/run.yaml"):
