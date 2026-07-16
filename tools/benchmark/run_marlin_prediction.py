@@ -78,9 +78,12 @@ def ensure_video(unit_id: str, video_dir: Path) -> Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     temporary = out.with_name(out.stem + ".tmp" + out.suffix)
     command = [
+        # -threads 1: マルチスレッドlibx264はエンコード結果が非決定的で、同一フレームでも
+        # 生成MP4のバイトが変わりMarlinの秒区間出力がぶれる。単一スレッドで決定論化し、
+        # runの再現性を確保する（再エンコードしても同じpredictionになる）。
         "ffmpeg", "-y", "-loglevel", "error", "-framerate", str(unit_fps(unit_id)),
         "-i", str(paths["frames"] / "f%04d.jpg"), "-c:v", "libx264", "-pix_fmt", "yuv420p",
-        "-vf", f"scale={VIDEO_WIDTH}:-2",
+        "-vf", f"scale={VIDEO_WIDTH}:-2", "-threads", "1",
         str(temporary),
     ]
     try:
