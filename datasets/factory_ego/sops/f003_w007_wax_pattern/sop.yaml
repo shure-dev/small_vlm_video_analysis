@@ -5,10 +5,16 @@ sop:
 events:
 - id: clean_wax_cluster_with_rod
   ask: 作業者が黄色い蝋部品の房を片手で持ち、先端が色付きの細い棒状の道具で房の表面をなぞって整えている
-  values: ['yes', 'no']
+  values:
+  - 'yes'
+  - 'no'
 - id: mark_wax_cluster_with_white_tool
-  ask: 作業者が黄色い蝋部品の房を両手で中央に持ち、白い先端の道具で房に印を付けている
-  values: ['yes', 'no']
+  ask: 作業者が黄色い蝋部品の房を両手で中央に持ち、白いチョークで黄色い部品に印を付けている
+  values:
+  - 'yes'
+  - 'no'
 - id: place_wax_cluster_on_rack
   ask: 作業者が黄色い蝋部品の房を、作業台奥に並ぶ同種の房のトレーへ腕を伸ばして置いている
-  values: ['yes', 'no']
+  values:
+  - 'yes'
+  - 'no'

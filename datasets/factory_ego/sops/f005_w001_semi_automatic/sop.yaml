@@ -4,7 +4,7 @@ sop:
   domain_hint: 作業者視点で、円環状の巻線部品、縦軸治具、操作盤、黒いピンセットを扱う20秒の工場動画
 events:
 - id: place_ring_part_on_machine_spindle
-  ask: 作業者が赤橙色の巻線が見える円環状部品を機械中央の縦軸治具へ載せて白い線を巻き付けている
+  ask: 作業者が赤橙色の巻線が見える円環状部品を機械中央の縦軸の治具で回転させて白い線を巻き付けている
   values:
   - 'yes'
   - 'no'
@@ -30,11 +30,6 @@ events:
   - 'no'
 - id: tuck_white_cord_with_black_tweezers
   ask: 作業者が黒いピンセットと指で白いひも状材料を円環状部品の巻線の間へ押し込み、整えている
-  values:
-  - 'yes'
-  - 'no'
-- id: reach_toward_control_panel_top
-  ask: 作業者が左手で円環状部品を保持しながら、右手を操作盤上面方向へ伸ばしている
   values:
   - 'yes'
   - 'no'

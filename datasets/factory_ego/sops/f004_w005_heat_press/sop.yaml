@@ -9,7 +9,7 @@ events:
   - 'yes'
   - 'no'
 - id: remove_white_fabric_from_heat_press
-  ask: 作業者が開いたヒートプレス機の下から白い布製品を引き出し、右側の作業台へ移して広げている
+  ask: 作業者が開いたヒートプレス機から白い布製品を右側の作業台へ移して広げている
   values:
   - 'yes'
   - 'no'
