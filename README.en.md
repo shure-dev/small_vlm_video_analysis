@@ -43,34 +43,21 @@ The current work first establishes this temporal capability on short clips. Temp
 
 The primary pilot uses 20 fixed industrial first-person clips from [Egocentric-10K](https://huggingface.co/datasets/builddotai/Egocentric-10K). Each clip is 20 seconds at 2 fps. A human watches the footage, writes Japanese event descriptions, and marks the reference spans. External machine-generated annotations are not used as ground truth.
 
-**All 20 clips are now annotated with 75 events and 88 reference spans**, compared against Marlin-2B temporal-grounding output. The table selects one stored result compatible with the current event definition for every clip and combines all 20 clips into one view. A mean tIoU of `1.0` is a perfect overlap with the human spans; `0.0` means no overlap.
+**All 20 clips are now annotated with 68 events and 81 reference spans.** Of the 20 clips, 13 have current ground-truth and input hashes matching the stored Marlin-2B run. We rank those 13 by per-clip Marlin mean tIoU and mechanically select the top two, the two nearest the median, and the bottom two. [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) and [Qwen3-VL-4B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct) receive the same English event descriptions and timestamp-JSON prompt. Times use half-open intervals from `0.0` seconds at the start of each clip.
 
-| 20-second clip | What happens in the footage | Marlin-2B<br>mean tIoU |
-|---|---|---:|
-| [Assembling and replenishing metal parts](datasets/factory_ego/sops/f001_w004_material_replenishment/sop.yaml) | Fasten a part with a power driver, pour parts from an inverted bag, and bundle the empty bag | 0.086 |
-| [Metal stamping workflow](datasets/factory_ego/sops/f001_w011_metal_stamping/sop.yaml) | Feed strip material into a press, walk to the next machine, and align a stack of metal sheets | 0.507 |
-| [Bagging folded garments](datasets/factory_ego/sops/f002_w002_garment_bagging/sop.yaml) | Insert a folded garment into a clear bag, seal it, and move the finished package | 0.566 |
-| [Folding a garment](datasets/factory_ego/sops/f002_w003_fabric_folding/sop.yaml) | Pick up a light-blue garment, fold it, and lift a black hanger | 0.504 |
-| [Folding a shirt with a board](datasets/factory_ego/sops/f002_w005_garment_ironing/sop.yaml) | Fold a shirt around a board, turn it over, and stack the finished item | 0.645 |
-| [Finishing cast-metal parts](datasets/factory_ego/sops/f003_w005_metal_casting/sop.yaml) | Carry cast parts into a wooden box and strike parts with a wood-handled hammer | 0.350 |
-| [Cleaning and marking a yellow part](datasets/factory_ego/sops/f003_w007_wax_pattern/sop.yaml) | Clean a yellow part, mark it with white chalk, and place it in a tray | 0.405 |
-| [Removing a molded part](datasets/factory_ego/sops/f003_w009_injection_molding/sop.yaml) | Remove a yellow plastic part from a metal mold and pick up a metal rod | 0.391 |
-| [Placing a lid on a mold](datasets/factory_ego/sops/f003_w010_mold_preparation/sop.yaml) | Place a yellow lid over a mold | **0.719** |
-| [Trimming garment threads](datasets/factory_ego/sops/f004_w002_thread_trimming/sop.yaml) | Cut garment threads with scissors and spread the garment on a table | **0.695** |
-| [Feeding a black garment into a sewing machine](datasets/factory_ego/sops/f004_w004_continuous_fabric/sop.yaml) | Spread a black garment, align its edge, and feed it under the presser foot | 0.498 |
-| [Handling fabric after heat pressing](datasets/factory_ego/sops/f004_w005_heat_press/sop.yaml) | Open the press, remove a white fabric item, then spread and fold the next piece | 0.594 |
-| [Overlock sewing pink fabric](datasets/factory_ego/sops/f004_w005_overlock_seaming/sop.yaml) | Sew and remove one piece, align the next fabric edge, and move it to the needle | 0.301 |
-| [Sewing a curved fabric edge](datasets/factory_ego/sops/f004_w006_curvilinear_seam/sop.yaml) | Align a curved gray edge, position it under the presser foot, and guide it while sewing | 0.633 |
-| [Binding a garment edge](datasets/factory_ego/sops/f004_w006_edge_binding/sop.yaml) | Sew the bound edge of a gray garment, cut excess binding, and spread the garment again | 0.228 |
-| [Operating a winding machine](datasets/factory_ego/sops/f005_w001_semi_automatic/sop.yaml) | Place a ring-shaped coil on a fixture, arrange cord-like material, and use the control panel | 0.380 |
-| [Operating a manual lathe](datasets/factory_ego/sops/f005_w010_manual_lathe/sop.yaml) | Turn a fixture with a box wrench, put the wrench down, then operate the controls and handwheel | 0.605 |
-| [Mounting a fixture in a CNC machine](datasets/factory_ego/sops/f005_w011_cnc_machine/sop.yaml) | Carry and mount a square fixture, use the control panel, and close the machine door | 0.423 |
-| [Sorting cylindrical metal parts](datasets/factory_ego/sops/f006_w004_bulk_material/sop.yaml) | Repeatedly lift similar parts from a large bin and move them to two destinations | 0.013 |
-| [Positioning a compression-molding die](datasets/factory_ego/sops/f006_w005_compression_molding/sop.yaml) | Carry a silver die into the press, align it under the upper tool, and move the control lever | 0.552 |
+| Stratum | Marlin rank | 20-second clip | Events | Reference spans | Marlin-2B | Qwen3.5-4B | Qwen3-VL-4B |
+|---|---:|---|---:|---:|---:|---:|---:|
+| High | 1/13 | [Metal stamping workflow](datasets/factory_ego/sops/f001_w011_metal_stamping/sop.yaml) | 4 | 4 | **0.802** | 0.304 | 0.109 |
+| High | 2/13 | [Mold preparation](datasets/factory_ego/sops/f003_w010_mold_preparation/sop.yaml) | 1 | 1 | **0.719** | 0.500 | 0.000 |
+| Middle | 6/13 | [Curved-seam sewing](datasets/factory_ego/sops/f004_w006_curvilinear_seam/sop.yaml) | 3 | 3 | **0.560** | 0.095 | 0.315 |
+| Middle | 7/13 | [Compression molding](datasets/factory_ego/sops/f006_w005_compression_molding/sop.yaml) | 2 | 2 | 0.551 | **0.644** | 0.267 |
+| Low | 12/13 | [Injection molding](datasets/factory_ego/sops/f003_w009_injection_molding/sop.yaml) | 2 | 2 | 0.300 | **0.364** | 0.138 |
+| Low | 13/13 | [Sorting bulk metal parts](datasets/factory_ego/sops/f006_w004_bulk_material/sop.yaml) | 3 | 10 | **0.085** | 0.034 | 0.000 |
+| **Overall** | — | **6 clips** | **15** | **22** | **0.371** | **0.198** | **0.100** |
 
-Across all 20 clips, mean tIoU is `0.389` and tIoU@0.5 F1 is `0.491`. The app lets you inspect the human and model spans on the same video to see which event caused each error.
+tIoU@0.5 F1 is `0.541` for Marlin-2B, `0.270` for Qwen3.5-4B, and `0.054` for Qwen3-VL-4B. All three models emit one span per event, so they produce 15 predictions for 22 reference spans, including ten repetitions in the bulk-parts clip. All 15 Qwen outputs are syntactically valid and within the 20-second range. Both Qwen models use 4-bit MLX conversions, 2 fps video, 640-pixel width, and temperature 0, executed one model at a time. MLX peak memory is `5.64 GB` for Qwen3.5 and `4.76 GB` for Qwen3-VL.
 
-These are development diagnostics on clips and prompts used during iteration, not held-out benchmark accuracy. The table follows the same rule as the app: select model results whose stored SOP hash matches the current definition. Fixed inputs and raw outputs are in [`runs/`](runs/); frozen per-run evaluations are in [`evaluations/`](evaluations/).
+This stratification reduces the bias of reporting only Marlin's strongest clips, but it is still a development diagnostic selected by Marlin performance rather than a fair held-out evaluation. Fixed inputs, raw outputs, and evaluation hashes are available in the [Marlin evaluation](evaluations/factory_ego_marlin_stratified6.json), [Qwen3.5 evaluation](evaluations/factory_ego_qwen3.5_stratified6.json), and [Qwen3-VL evaluation](evaluations/factory_ego_qwen3-vl-4b_stratified6.json).
 
 ## Improvement loop
 

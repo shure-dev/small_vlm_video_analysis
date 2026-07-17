@@ -43,34 +43,21 @@
 
 主対象は、[Egocentric-10K](https://huggingface.co/datasets/builddotai/Egocentric-10K)から固定した20本の工場一人称動画です。各動画は20秒・2fpsで、人間が映像を見ながら日本語のイベント文と正解区間を作ります。外部の機械生成アノテーションは正解データとして使いません。
 
-現在は**20本すべてに75イベント・88正解区間**の人手アノテーションが完了し、Marlin-2BのTemporal Grounding出力と比較しています。次の表は、各動画の現在のイベント定義と一致する保存済み結果を1件ずつ選び、20本をまとめたものです。mean tIoUは、モデル区間と人手区間が完全に重なると`1.0`、重ならないと`0.0`です。
+現在は**20本すべてに68イベント・81正解区間**の人手アノテーションが完了しています。現行GTと入力hashが一致する13動画をMarlin-2Bの動画別mean tIoUで順位付けし、上位2本、中央値付近の2本、下位2本を機械的に選びました。同じ英語イベント文と時刻JSONプロンプトで[Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B)と[Qwen3-VL-4B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)を比較しています。時刻は動画先頭を`0.0秒`とするhalf-open intervalです。
 
-| 20秒動画 | 映っている作業 | Marlin-2B<br>mean tIoU |
-|---|---|---:|
-| [金属部品の組立と補充](datasets/factory_ego/sops/f001_w004_material_replenishment/sop.yaml) | 電動ドライバーで締結し、袋を逆さにして部品を補充し、空袋をまとめる | 0.086 |
-| [金属プレス工程](datasets/factory_ego/sops/f001_w011_metal_stamping/sop.yaml) | 帯状材料をプレス機へ送り、隣の機械へ移動して金属板の束を揃える | 0.507 |
-| [衣類の袋詰め](datasets/factory_ego/sops/f002_w002_garment_bagging/sop.yaml) | 折り畳み衣類を透明袋へ入れ、封をして完成品を移動する | 0.566 |
-| [衣類の折り畳み](datasets/factory_ego/sops/f002_w003_fabric_folding/sop.yaml) | 薄青色の衣類を取り上げて折り、黒いハンガーを持ち上げる | 0.504 |
-| [折り畳み板を使ったシャツ整理](datasets/factory_ego/sops/f002_w005_garment_ironing/sop.yaml) | 板に沿ってシャツを折り、表へ返して完成品の山へ重ねる | 0.645 |
-| [鋳物部品の仕上げ](datasets/factory_ego/sops/f003_w005_metal_casting/sop.yaml) | 鋳物部品を木箱へ運び、木柄のハンマーで部品を叩く | 0.350 |
-| [黄色部品の清掃とマーキング](datasets/factory_ego/sops/f003_w007_wax_pattern/sop.yaml) | 黄色い部品を清掃し、白いチョークで印を付けてトレーへ置く | 0.405 |
-| [成形品の金型からの取り出し](datasets/factory_ego/sops/f003_w009_injection_molding/sop.yaml) | 黄色いプラスチック部品を金属金型から取り出し、金属棒を持つ | 0.391 |
-| [金型への蓋の取り付け](datasets/factory_ego/sops/f003_w010_mold_preparation/sop.yaml) | 金型の上へ黄色い蓋をかぶせる | **0.719** |
-| [衣類の糸切り](datasets/factory_ego/sops/f004_w002_thread_trimming/sop.yaml) | 鋏で衣類の糸を切り、衣類を作業台へ広げる | **0.695** |
-| [黒い衣類のミシン送り](datasets/factory_ego/sops/f004_w004_continuous_fabric/sop.yaml) | 黒い衣類を広げて端を揃え、ミシンの押さえ金へ送り込む | 0.498 |
-| [ヒートプレス後の布製品](datasets/factory_ego/sops/f004_w005_heat_press/sop.yaml) | プレスを開き、白い布製品を取り出して、次の布を広げながら折り揃える | 0.594 |
-| [ピンク生地のオーバーロック縫製](datasets/factory_ego/sops/f004_w005_overlock_seaming/sop.yaml) | 生地を縫って引き抜き、次の生地の端を揃えて針元へ運ぶ | 0.301 |
-| [曲線状の生地端の縫製](datasets/factory_ego/sops/f004_w006_curvilinear_seam/sop.yaml) | 灰色生地の曲線端を揃え、ミシンの押さえ金へ運び、向きを変えながら縫い進める | 0.633 |
-| [衣類の縁取り縫製](datasets/factory_ego/sops/f004_w006_edge_binding/sop.yaml) | 灰色衣類の縁を縫い、余分な縁材を鋏で切り、衣類を広げ直す | 0.228 |
-| [巻線部品の機械操作](datasets/factory_ego/sops/f005_w001_semi_automatic/sop.yaml) | 円環状部品を治具へ載せ、ひも状材料を整えながら操作盤を扱う | 0.380 |
-| [手動旋盤の操作](datasets/factory_ego/sops/f005_w010_manual_lathe/sop.yaml) | メガネレンチで治具を回し、レンチを置いて、操作部とハンドルを動かす | 0.605 |
-| [CNC機への治具取り付け](datasets/factory_ego/sops/f005_w011_cnc_machine/sop.yaml) | 四角い治具を機内へ運んで取り付け、操作盤を押して扉を閉じる | 0.423 |
-| [円筒形金属部品の仕分け](datasets/factory_ego/sops/f006_w004_bulk_material/sop.yaml) | 大型容器から似た金属部品を繰り返し持ち上げ、二つの置き場所へ移す | 0.013 |
-| [圧縮成形プレスへの金型設置](datasets/factory_ego/sops/f006_w005_compression_molding/sop.yaml) | 銀色の金型をプレスへ運んで位置を合わせ、操作レバーを動かす | 0.552 |
+| 層 | Marlin順位 | 20秒動画 | イベント数 | 正解区間 | Marlin-2B | Qwen3.5-4B | Qwen3-VL-4B |
+|---|---:|---|---:|---:|---:|---:|---:|
+| 高 | 1/13 | [金属プレス工程](datasets/factory_ego/sops/f001_w011_metal_stamping/sop.yaml) | 4 | 4 | **0.802** | 0.304 | 0.109 |
+| 高 | 2/13 | [金型準備](datasets/factory_ego/sops/f003_w010_mold_preparation/sop.yaml) | 1 | 1 | **0.719** | 0.500 | 0.000 |
+| 中 | 6/13 | [曲線縫製](datasets/factory_ego/sops/f004_w006_curvilinear_seam/sop.yaml) | 3 | 3 | **0.560** | 0.095 | 0.315 |
+| 中 | 7/13 | [圧縮成形](datasets/factory_ego/sops/f006_w005_compression_molding/sop.yaml) | 2 | 2 | 0.551 | **0.644** | 0.267 |
+| 低 | 12/13 | [射出成形](datasets/factory_ego/sops/f003_w009_injection_molding/sop.yaml) | 2 | 2 | 0.300 | **0.364** | 0.138 |
+| 低 | 13/13 | [バルク材の仕分け](datasets/factory_ego/sops/f006_w004_bulk_material/sop.yaml) | 3 | 10 | **0.085** | 0.034 | 0.000 |
+| **全体** | — | **6動画** | **15** | **22** | **0.371** | **0.198** | **0.100** |
 
-20本を合わせたmean tIoUは`0.389`、tIoU@0.5 F1は`0.491`です。アプリでは、人手区間とモデル区間を同じ動画上で見比べ、どのイベントでずれたかを確認できます。
+tIoU@0.5 F1はMarlin-2Bが`0.541`、Qwen3.5-4Bが`0.270`、Qwen3-VL-4Bが`0.054`でした。3モデルとも1イベントにつき1区間だけを返すため、10回発生するバルク材動画を含む22正解区間に対して予測は15区間です。両Qwenは全15件が構文・範囲とも有効でした。4bit MLX変換を使い、2fps・幅640px・temperature 0で1モデルずつ実行しています。MLXのpeak memoryはQwen3.5が`5.64GB`、Qwen3-VLが`4.76GB`でした。
 
-これらはイベント定義とプロンプトの調整にも使うdevelopmentデータ上の診断値であり、未見動画に対する正式なベンチマーク精度ではありません。表は、現在のSOP hashと一致する結果をモデル単位で選ぶアプリと同じ規則で作成しています。固定した入力とraw出力は[`runs/`](runs/)、入力hashを固定した個別評価は[`evaluations/`](evaluations/)から確認できます。
+この層化はMarlinの高得点動画だけに偏る問題を減らしますが、Marlinの成績を基準に選んだdevelopment診断であり、公平な未見データ評価ではありません。固定した入力・raw出力・評価hashは[Marlin評価](evaluations/factory_ego_marlin_stratified6.json)、[Qwen3.5評価](evaluations/factory_ego_qwen3.5_stratified6.json)、[Qwen3-VL評価](evaluations/factory_ego_qwen3-vl-4b_stratified6.json)から再計算できます。
 
 ## 改善ループ
 
